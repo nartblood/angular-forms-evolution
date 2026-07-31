@@ -33,6 +33,7 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | `/signal/async` | | `validateHttp` — no debounce, cache or `first()` to hand-roll |
 | `/signal/submit` | | `[formRoot]`, `submitting()`, field-targeted server errors |
 | `/signal/schemas` | | every rule extracted to `composer-schema.ts`, reused and unit-tested |
+| `/signal/i18n` | | translated messages: validators emit a `kind`, the view supplies the copy |
 | `/signal/zod` | | **bonus** — the same rules as Zod via `validateStandardSchema` |
 
 The async demos run against an `HttpInterceptorFn` that fakes the backend, so

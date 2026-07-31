@@ -29,6 +29,7 @@
     "@angular/platform-browser": "^22.1.0",
     "@angular/router": "^22.1.0",
     "@ng-select/ng-select": "^23.5.1",
+    "@ngx-translate/core": "^16.0.4",
     "dayjs": "^1.11.21",
     "dompurify": "^3.4.12",
     "es-toolkit": "^1.39.8",

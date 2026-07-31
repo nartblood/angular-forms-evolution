@@ -47,7 +47,13 @@ import {
   SIGNAL_SCHEMAS_LOAD,
   SIGNAL_SCHEMAS_USAGE,
 } from './17-signal-schemas/schemas-snippets';
-import { ZOD_SCHEMA, ZOD_WIRING } from './18-signal-zod/zod-snippets';
+import { ZOD_SCHEMA, ZOD_WIRING } from './19-signal-zod/zod-snippets';
+import {
+  I18N_BRIDGE,
+  I18N_PARAMS,
+  I18N_RESOLVER,
+  I18N_SCHEMA,
+} from './18-signal-i18n/i18n-snippets';
 
 /**
  * Every snippet rendered on screen is a *copy* of the code it claims to show, so
@@ -99,8 +105,13 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
   ['S8 load', SIGNAL_SCHEMAS_LOAD, '17-signal-schemas/schemas-page.ts'],
   ['S8 definition', SIGNAL_SCHEMAS_DEFINITION, '17-signal-schemas/composer-schema.ts'],
 
-  ['S9 schema', ZOD_SCHEMA, '18-signal-zod/zod-page.ts'],
-  ['S9 wiring', ZOD_WIRING, '18-signal-zod/zod-page.ts'],
+  ['Bonus zod schema', ZOD_SCHEMA, '19-signal-zod/zod-page.ts'],
+  ['Bonus zod wiring', ZOD_WIRING, '19-signal-zod/zod-page.ts'],
+
+  ['S9 i18n schema', I18N_SCHEMA, '18-signal-i18n/i18n-page.ts'],
+  ['S9 i18n params', I18N_PARAMS, '18-signal-i18n/i18n-page.ts'],
+  ['S9 i18n resolver', I18N_RESOLVER, 'shared/i18n.ts'],
+  ['S9 i18n bridge', I18N_BRIDGE, 'shared/i18n.ts'],
 ];
 
 describe('on-screen snippets match their source', () => {

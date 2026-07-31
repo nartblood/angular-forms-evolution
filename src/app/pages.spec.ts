@@ -4,6 +4,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
 import { fakeBackendInterceptor } from './shared/fake-backend';
+import { provideDemoTranslations } from './shared/i18n';
 import { TemplateDrivenPage } from './01-template-driven/template-driven-page';
 import { ConditionalReactivePage } from './02-reactive-conditional/conditional-reactive-page';
 import { ReactivePage } from './09-reactive-everything/reactive-page';
@@ -15,7 +16,8 @@ import { VisibilityPage } from './14-signal-visibility/visibility-page';
 import { AsyncPage } from './15-signal-async/async-page';
 import { SubmitPage } from './16-signal-submit/submit-page';
 import { SchemasPage } from './17-signal-schemas/schemas-page';
-import { ZodPage } from './18-signal-zod/zod-page';
+import { ZodPage } from './19-signal-zod/zod-page';
+import { I18nPage } from './18-signal-i18n/i18n-page';
 
 /**
  * Smoke coverage: every page must actually mount and render.
@@ -37,12 +39,17 @@ const PAGES: ReadonlyArray<[string, Type<unknown>]> = [
   ['signal · submit', SubmitPage],
   ['signal · schemas', SchemasPage],
   ['signal · zod', ZodPage],
+  ['signal · i18n (S10)', I18nPage],
 ];
 
 describe('demo pages', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(withInterceptors([fakeBackendInterceptor])), provideRouter([])],
+      providers: [
+        provideHttpClient(withInterceptors([fakeBackendInterceptor])),
+        provideRouter([]),
+        provideDemoTranslations(),
+      ],
     });
   });
 

@@ -70,7 +70,13 @@ export const routes: Routes = [
   {
     path: 'signal/zod',
     title: 'Signal · Zod',
-    loadComponent: () => import('./18-signal-zod/zod-page').then((m) => m.ZodPage),
+    loadComponent: () => import('./19-signal-zod/zod-page').then((m) => m.ZodPage),
+  },
+
+  {
+    path: 'signal/i18n',
+    title: 'S10 · Translations',
+    loadComponent: () => import('./18-signal-i18n/i18n-page').then((m) => m.I18nPage),
   },
 
   { path: '**', redirectTo: 'template-driven' },
