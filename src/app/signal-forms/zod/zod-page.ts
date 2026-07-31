@@ -5,8 +5,12 @@ import * as z from 'zod';
 
 import { InputDirective } from '@agorapulse/ui-components/input';
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
 
-import { CHANNELS, CHANNEL_LABEL, Channel, contentLimitFor, toggleChannel } from '../../shared/channel';
+import { Channel, contentLimitFor, toggleChannel } from '../../shared/channel';
+import { ChannelPicker } from '../../shared/channel-picker';
 
 /**
  * Bonus — the same rules as a Zod schema.
@@ -44,57 +48,59 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
 
 @Component({
   selector: 'app-signal-zod-page',
-  imports: [FormField, InputDirective, TextareaDirective, JsonPipe],
+  imports: [
+    FormField,
+    InputDirective,
+    TextareaDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    ChannelPicker,
+    JsonPipe,
+  ],
   template: `
     <section class="demo">
       <h2>9 · Zod (bonus)</h2>
       <p class="demo__intro">
         No Angular validators at all — <code>validateStandardSchema</code> maps Zod issues onto the
-        matching fields. The schema is dynamic: it's rebuilt in a
-        <code>computed</code> when the channel selection changes the limit.
+        matching fields. The schema is dynamic: it's rebuilt in a <code>computed</code> when the
+        channel selection changes the limit.
       </p>
 
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <div class="channels">
-            @for (channel of channels; track channel) {
-              <button
-                type="button"
-                class="channel-chip"
-                [class.is-selected]="model().channels.includes(channel)"
-                (click)="toggle(channel)"
-              >
-                {{ channelLabel[channel] }}
-              </button>
-            }
-          </div>
+          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
           @if (composer.channels().invalid()) {
-            <span class="field__error">{{ composer.channels().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.channels().errors()[0].message ?? 'Invalid'"
+            />
           }
         </div>
 
-        <div class="field">
+        <ap-form-field>
           <label for="s9-content">Content</label>
           <textarea id="s9-content" apTextarea [formField]="composer.content"></textarea>
-          <span class="field__hint">{{ model().content.length }} / {{ limit() }}</span>
           @if (composer.content().touched() && composer.content().invalid()) {
-            <span class="field__error">{{ composer.content().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.content().errors()[0].message ?? 'Invalid'"
+            />
           }
-        </div>
+        </ap-form-field>
+        <span class="field__hint">{{ model().content.length }} / {{ limit() }}</span>
 
-        <div class="field">
-          <label for="s9-firstComment">
-            First comment
-            @if (composer.firstComment().disabled()) {
-              <span class="field__hint">(Instagram or LinkedIn only)</span>
-            }
-          </label>
+        <ap-form-field>
+          <label for="s9-firstComment">First comment</label>
           <input id="s9-firstComment" apInput [formField]="composer.firstComment" />
-        </div>
+        </ap-form-field>
+        @if (composer.firstComment().disabled()) {
+          <span class="field__hint">Instagram or LinkedIn only</span>
+        }
 
         <div class="actions">
-          <button type="submit" class="primary" [disabled]="composer().invalid()">Schedule</button>
+          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
         </div>
       </form>
 
@@ -117,9 +123,6 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
   `,
 })
 export class ZodPage {
-  protected readonly channels = CHANNELS;
-  protected readonly channelLabel = CHANNEL_LABEL;
-
   protected readonly model = signal<ZodDraft>({
     channels: [],
     content: '',

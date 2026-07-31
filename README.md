@@ -64,9 +64,24 @@ Wiring mirrors the platform app: `theme.scss` and `desktop_variables.css` are in
 `angular.json` → `styles`, each package's `assets/` folder is copied to `assets/lib-ui-*`,
 and SCSS variables come from `@use '@agorapulse/ui-theme/assets/style/variables'`.
 
-Worth noting for the talk: `apInput` is a **directive on a native `<input>`**, not a wrapper
-component. So the same markup composes with all three form APIs —
-`[(ngModel)]`, `formControlName`, and `[formField]` — with no adapter layer.
+Components used: `ap-form-field`, `ap-form-message`, `ap-button`, `ap-radio`, `ap-checkbox`,
+plus the `[apInput]` / `[apTextarea]` directives. Import them from their **subpaths**
+(`@agorapulse/ui-components/input`) — the root barrel doesn't resolve in a plain Angular app.
+
+### Two findings worth carrying back to the platform
+
+**1. `ap-radio` works with all three form APIs.** It implements `ControlValueAccessor` and was
+written for `ngModel` / `formControlName`, but it also binds to Signal Forms' `[formField]`.
+`conditional-page.spec.ts` asserts the radio writes back into the model signal, so this is
+verified rather than assumed — and it means migrating our composite components is not the
+blocker it looked like.
+
+**2. `ap-button` renders `type="button"`** and does **not** submit its parent form. Submit
+actions go through `formEl.requestSubmit()` (see the `[formRoot]` page) or a `(click)` handler.
+`probe.spec.ts` pins this down, so a future ui-components release that changes it will fail loudly.
+
+`apInput` is a directive on a native `<input>` rather than a wrapper component, so the same markup
+composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapter layer.
 
 ## Tests
 
@@ -84,7 +99,8 @@ Signal Forms is **experimental**: the API can change between minor versions. Eve
 written against the docs for Angular 22.1 and verified by the test suite, but check before copying
 into the platform.
 
-The design system's composite `ControlValueAccessor` components (`ap-password-input`,
-`ap-slide-toggle`, `ap-legacy-select`, `ap-phone-number-input`) are **not** exercised here — the
-demos use native inputs with `[apInput]` / `[apTextarea]`. Whether `[formField]` works with those
-CVA components is the one open question for a real migration.
+`ap-radio` is the only composite `ControlValueAccessor` component exercised here. It works with
+`[formField]`, which is strong evidence for the rest — but `ap-password-input`, `ap-slide-toggle`,
+`ap-legacy-select` and `ap-phone-number-input` are still untested. `ap-legacy-select` is the one
+to check next: its `RadioControlRegistry`-style internals lean on `NgControl`, which Signal Forms
+does not provide.

@@ -3,8 +3,12 @@ import { JsonPipe } from '@angular/common';
 import { FormField, form, required, validate } from '@angular/forms/signals';
 
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
 
-import { CHANNELS, CHANNEL_LABEL, Channel, toggleChannel } from '../../shared/channel';
+import { Channel, toggleChannel } from '../../shared/channel';
+import { ChannelPicker } from '../../shared/channel-picker';
 import { emptyDraft } from '../../shared/post-draft';
 
 /**
@@ -15,7 +19,15 @@ import { emptyDraft } from '../../shared/post-draft';
  */
 @Component({
   selector: 'app-signal-minimal-page',
-  imports: [FormField, TextareaDirective, JsonPipe],
+  imports: [
+    FormField,
+    TextareaDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    ChannelPicker,
+    JsonPipe,
+  ],
   template: `
     <section class="demo">
       <h2>1 · Minimal</h2>
@@ -28,40 +40,35 @@ import { emptyDraft } from '../../shared/post-draft';
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <div class="channels">
-            @for (channel of channels; track channel) {
-              <button
-                type="button"
-                class="channel-chip"
-                [class.is-selected]="model().channels.includes(channel)"
-                (click)="toggle(channel)"
-              >
-                {{ channelLabel[channel] }}
-              </button>
-            }
-          </div>
+          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
           @if (composer.channels().touched() && composer.channels().invalid()) {
-            <span class="field__error">{{ composer.channels().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.channels().errors()[0].message ?? 'Invalid'"
+            />
           }
         </div>
 
-        <div class="field">
+        <ap-form-field>
           <label for="s1-content">Content</label>
           <textarea id="s1-content" apTextarea [formField]="composer.content"></textarea>
           @if (composer.content().touched() && composer.content().invalid()) {
-            <span class="field__error">{{ composer.content().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.content().errors()[0].message ?? 'Invalid'"
+            />
           }
-        </div>
+        </ap-form-field>
 
         <div class="actions">
-          <button type="submit" class="primary" [disabled]="composer().invalid()">Schedule</button>
+          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
         </div>
       </form>
 
       <p class="demo__pain demo__win">
-        <strong>Already different.</strong> Channels is plain state toggled by a button — no
-        control, no <code>ControlValueAccessor</code> — and it still validates, because
-        <code>validate()</code> targets the model path rather than a form control.
+        <strong>Already different.</strong> Channels is plain state toggled by an
+        <code>ap-checkbox</code> — no control, no <code>ControlValueAccessor</code> — and it still
+        validates, because <code>validate()</code> targets the model path rather than a form control.
       </p>
 
       <pre class="demo__state">{{ model() | json }}</pre>
@@ -69,9 +76,6 @@ import { emptyDraft } from '../../shared/post-draft';
   `,
 })
 export class MinimalPage {
-  protected readonly channels = CHANNELS;
-  protected readonly channelLabel = CHANNEL_LABEL;
-
   protected readonly model = signal(emptyDraft());
 
   protected readonly composer = form(this.model, (path) => {

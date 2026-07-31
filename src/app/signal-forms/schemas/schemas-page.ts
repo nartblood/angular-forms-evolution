@@ -4,8 +4,13 @@ import { FormField, form } from '@angular/forms/signals';
 
 import { InputDirective } from '@agorapulse/ui-components/input';
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
+import { RadioComponent } from '@agorapulse/ui-components/radio';
 
-import { CHANNELS, CHANNEL_LABEL, Channel, toggleChannel } from '../../shared/channel';
+import { Channel, toggleChannel } from '../../shared/channel';
+import { ChannelPicker } from '../../shared/channel-picker';
 import { emptyDraft, emptyMediaItem, existingDraft } from '../../shared/post-draft';
 import { composerSchema } from './composer-schema';
 
@@ -18,58 +23,61 @@ import { composerSchema } from './composer-schema';
  */
 @Component({
   selector: 'app-signal-schemas-page',
-  imports: [FormField, InputDirective, TextareaDirective, JsonPipe],
+  imports: [
+    FormField,
+    InputDirective,
+    TextareaDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    RadioComponent,
+    ChannelPicker,
+    JsonPipe,
+  ],
   template: `
     <section class="demo">
       <h2>8 · Schemas</h2>
       <p class="demo__intro">
-        All eight rules now live in <code>composer-schema.ts</code>, and this component declares
-        the form in a single line. Press <em>Load existing draft</em> and watch the derived state
-        arrive already correct.
+        All the rules now live in <code>composer-schema.ts</code>, and this component declares the
+        form in a single line. Press <em>Load existing draft</em> and watch the derived state arrive
+        already correct.
       </p>
 
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <div class="channels">
-            @for (channel of channels; track channel) {
-              <button
-                type="button"
-                class="channel-chip"
-                [class.is-selected]="model().channels.includes(channel)"
-                (click)="toggle(channel)"
-              >
-                {{ channelLabel[channel] }}
-              </button>
-            }
-          </div>
+          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
           @if (composer.channels().invalid()) {
-            <span class="field__error">{{ composer.channels().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.channels().errors()[0].message ?? 'Invalid'"
+            />
           }
         </div>
 
-        <div class="field">
+        <ap-form-field>
           <label for="s8-content">Content</label>
           <textarea id="s8-content" apTextarea [formField]="composer.content"></textarea>
           @if (composer.content().touched() && composer.content().invalid()) {
-            <span class="field__error">{{ composer.content().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.content().errors()[0].message ?? 'Invalid'"
+            />
           }
-        </div>
+        </ap-form-field>
 
         <div class="field">
           <label>When</label>
           <div class="radio-row">
-            <label>
-              <input type="radio" value="now" [formField]="composer.publishMode" /> Now
-            </label>
-            <label>
-              <input type="radio" value="scheduled" [formField]="composer.publishMode" /> Schedule
-            </label>
+            <ap-radio radioId="s8-now" value="now" [formField]="composer.publishMode">Now</ap-radio>
+            <ap-radio radioId="s8-scheduled" value="scheduled" [formField]="composer.publishMode">
+              Schedule
+            </ap-radio>
           </div>
         </div>
 
         @if (model().publishMode === 'scheduled') {
-          <div class="field">
+          <ap-form-field>
             <label for="s8-scheduledAt">Publish at</label>
             <input
               id="s8-scheduledAt"
@@ -78,38 +86,62 @@ import { composerSchema } from './composer-schema';
               [formField]="composer.scheduledAt"
             />
             @if (composer.scheduledAt().touched() && composer.scheduledAt().invalid()) {
-              <span class="field__error">{{ composer.scheduledAt().errors()[0].message }}</span>
+              <ap-form-message
+                messageType="error"
+                [message]="composer.scheduledAt().errors()[0].message ?? 'Invalid'"
+              />
             }
-          </div>
+          </ap-form-field>
         }
 
         <div class="field">
           <label>Media</label>
           @for (item of composer.media; track $index) {
             <div class="media-row">
-              <input apInput placeholder="https://…" [formField]="item.url" />
-              <input apInput placeholder="Alt text" [formField]="item.altText" />
-              <button type="button" class="ghost" (click)="removeMedia($index)">Remove</button>
+              <ap-form-field>
+                <input apInput placeholder="https://…" [formField]="item.url" />
+              </ap-form-field>
+              <ap-form-field>
+                <input apInput placeholder="Alt text" [formField]="item.altText" />
+              </ap-form-field>
+              <ap-button
+                [config]="{ style: 'stroked', color: 'red' }"
+                (click)="removeMedia($index)"
+              >
+                Remove
+              </ap-button>
             </div>
           }
           @if (composer.media().invalid()) {
-            <span class="field__error">{{ composer.media().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.media().errors()[0].message ?? 'Invalid'"
+            />
           }
-          <button type="button" class="ghost" (click)="addMedia()">Add media</button>
+          <ap-button [config]="{ style: 'stroked', color: 'grey' }" (click)="addMedia()">
+            Add media
+          </ap-button>
         </div>
 
-        <div class="field">
+        <ap-form-field>
           <label for="s8-firstComment">First comment</label>
           <input id="s8-firstComment" apInput [formField]="composer.firstComment" />
           @if (composer.firstComment().touched() && composer.firstComment().invalid()) {
-            <span class="field__error">{{ composer.firstComment().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.firstComment().errors()[0].message ?? 'Invalid'"
+            />
           }
-        </div>
+        </ap-form-field>
 
         <div class="actions">
-          <button type="submit" class="primary" [disabled]="composer().invalid()">Schedule</button>
-          <button type="button" class="ghost" (click)="loadExisting()">Load existing draft</button>
-          <button type="button" class="ghost" (click)="reset()">Reset</button>
+          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
+          <ap-button [config]="{ style: 'stroked', color: 'blue' }" (click)="loadExisting()">
+            Load existing draft
+          </ap-button>
+          <ap-button [config]="{ style: 'stroked', color: 'grey' }" (click)="reset()">
+            Reset
+          </ap-button>
         </div>
       </form>
 
@@ -125,9 +157,6 @@ import { composerSchema } from './composer-schema';
   `,
 })
 export class SchemasPage {
-  protected readonly channels = CHANNELS;
-  protected readonly channelLabel = CHANNEL_LABEL;
-
   protected readonly model = signal(emptyDraft());
 
   /** Every rule, applied. */

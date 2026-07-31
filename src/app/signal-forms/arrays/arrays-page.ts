@@ -3,15 +3,17 @@ import { JsonPipe } from '@angular/common';
 import { FormField, applyEach, form, required, validate } from '@angular/forms/signals';
 
 import { InputDirective } from '@agorapulse/ui-components/input';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import {
-  CHANNELS,
-  CHANNEL_LABEL,
   Channel,
   channelsRequiringMedia,
   maxMediaFor,
   toggleChannel,
 } from '../../shared/channel';
+import { ChannelPicker } from '../../shared/channel-picker';
 import { emptyDraft, emptyMediaItem } from '../../shared/post-draft';
 
 /**
@@ -23,7 +25,15 @@ import { emptyDraft, emptyMediaItem } from '../../shared/post-draft';
  */
 @Component({
   selector: 'app-signal-arrays-page',
-  imports: [FormField, InputDirective, JsonPipe],
+  imports: [
+    FormField,
+    InputDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    ChannelPicker,
+    JsonPipe,
+  ],
   template: `
     <section class="demo">
       <h2>4 · Arrays</h2>
@@ -35,20 +45,12 @@ import { emptyDraft, emptyMediaItem } from '../../shared/post-draft';
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <div class="channels">
-            @for (channel of channels; track channel) {
-              <button
-                type="button"
-                class="channel-chip"
-                [class.is-selected]="model().channels.includes(channel)"
-                (click)="toggle(channel)"
-              >
-                {{ channelLabel[channel] }}
-              </button>
-            }
-          </div>
+          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
           @if (composer.media().touched() && composer.media().invalid()) {
-            <span class="field__error">{{ composer.media().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.media().errors()[0].message ?? 'Invalid'"
+            />
           }
         </div>
 
@@ -56,26 +58,36 @@ import { emptyDraft, emptyMediaItem } from '../../shared/post-draft';
           <label>Media</label>
           @for (item of composer.media; track $index) {
             <div class="media-row">
-              <div>
+              <ap-form-field>
                 <input apInput placeholder="https://…" [formField]="item.url" />
                 @if (item.url().touched() && item.url().invalid()) {
-                  <span class="field__error">{{ item.url().errors()[0].message }}</span>
+                  <ap-form-message
+                    messageType="error"
+                    [message]="item.url().errors()[0].message ?? 'Invalid'"
+                  />
                 }
-              </div>
-              <div>
+              </ap-form-field>
+              <ap-form-field>
                 <input apInput placeholder="Alt text" [formField]="item.altText" />
                 @if (item.altText().touched() && item.altText().invalid()) {
-                  <span class="field__error">{{ item.altText().errors()[0].message }}</span>
+                  <ap-form-message
+                    messageType="error"
+                    [message]="item.altText().errors()[0].message ?? 'Invalid'"
+                  />
                 }
-              </div>
-              <button type="button" class="ghost" (click)="removeMedia($index)">Remove</button>
+              </ap-form-field>
+              <ap-button [config]="{ style: 'stroked', color: 'red' }" (click)="removeMedia($index)">
+                Remove
+              </ap-button>
             </div>
           }
-          <button type="button" class="ghost" (click)="addMedia()">Add media</button>
+          <ap-button [config]="{ style: 'stroked', color: 'grey' }" (click)="addMedia()">
+            Add media
+          </ap-button>
         </div>
 
         <div class="actions">
-          <button type="submit" class="primary" [disabled]="composer().invalid()">Schedule</button>
+          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
         </div>
       </form>
 
@@ -91,9 +103,6 @@ import { emptyDraft, emptyMediaItem } from '../../shared/post-draft';
   `,
 })
 export class ArraysPage {
-  protected readonly channels = CHANNELS;
-  protected readonly channelLabel = CHANNEL_LABEL;
-
   protected readonly model = signal(emptyDraft());
 
   protected readonly composer = form(this.model, (path) => {

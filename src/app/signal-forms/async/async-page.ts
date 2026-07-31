@@ -3,6 +3,9 @@ import { JsonPipe } from '@angular/common';
 import { FormField, form, required, validateHttp } from '@angular/forms/signals';
 
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { ALREADY_PUBLISHED, DUPLICATE_CHECK_URL } from '../../shared/fake-backend';
 import { emptyDraft } from '../../shared/post-draft';
@@ -17,7 +20,14 @@ import { emptyDraft } from '../../shared/post-draft';
  */
 @Component({
   selector: 'app-signal-async-page',
-  imports: [FormField, TextareaDirective, JsonPipe],
+  imports: [
+    FormField,
+    TextareaDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    JsonPipe,
+  ],
   template: `
     <section class="demo">
       <h2>6 · Async</h2>
@@ -27,37 +37,36 @@ import { emptyDraft } from '../../shared/post-draft';
       </p>
 
       <form novalidate>
-        <div class="field">
+        <ap-form-field>
           <label for="s6-content">Content</label>
           <textarea id="s6-content" apTextarea [formField]="composer.content"></textarea>
-
-          @if (composer.content().pending()) {
-            <span class="field__pending">Checking for duplicates…</span>
-          }
           @if (composer.content().touched() && composer.content().invalid()) {
-            <span class="field__error">{{ composer.content().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.content().errors()[0].message ?? 'Invalid'"
+            />
           }
-        </div>
+        </ap-form-field>
+        @if (composer.content().pending()) {
+          <span class="field__pending">Checking for duplicates…</span>
+        }
 
         <div class="actions">
-          <button
-            type="submit"
-            class="primary"
+          <ap-button
             [disabled]="composer().invalid() || composer().pending()"
+            [loading]="composer().pending()"
           >
             Schedule
-          </button>
-          @if (composer().pending()) {
-            <span class="field__hint">waiting for validation…</span>
-          }
+          </ap-button>
         </div>
       </form>
 
       <p class="demo__pain demo__win">
         <strong>No debounce, no cache, no <code>first()</code>.</strong> Returning
         <code>undefined</code> from <code>request</code> skips the call entirely, so short or empty
-        input never hits the server. And <code>pending()</code> is a real signal, so gating the
-        submit button needs no <code>settled()</code> helper.
+        input never hits the server. And <code>pending()</code> is a real signal — it drives
+        <code>ap-button</code>'s own <code>loading</code> state directly, with no
+        <code>settled()</code> helper.
       </p>
 
       <pre class="demo__state">pending: {{ composer().pending() }}

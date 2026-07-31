@@ -1,22 +1,34 @@
 import { Component, signal } from '@angular/core';
-import { JsonPipe } from '@angular/common';
 import { FormField, form, required, validate } from '@angular/forms/signals';
 
 import { InputDirective } from '@agorapulse/ui-components/input';
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
+import { RadioComponent } from '@agorapulse/ui-components/radio';
 
 import { emptyDraft } from '../../shared/post-draft';
 
 /**
  * Step 2 — conditional rules with `when`.
  *
- * The reactive equivalent is `setValidators()` + `clearValidators()` +
- * `updateValueAndValidity({emitEvent: false})`, driven from a `valueChanges`
- * subscription that also has to be primed by hand on first render.
+ * Also the design system's CVA interop test: `ap-radio` implements
+ * `ControlValueAccessor` and is written for `ngModel` / `formControlName`.
+ * Here it is driven by `[formField]` instead. If that binding works, the
+ * migration story for our composite components is straightforward.
  */
 @Component({
   selector: 'app-signal-conditional-page',
-  imports: [FormField, InputDirective, TextareaDirective, JsonPipe],
+  imports: [
+    FormField,
+    InputDirective,
+    TextareaDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    RadioComponent,
+  ],
   template: `
     <section class="demo">
       <h2>2 · Conditional</h2>
@@ -26,27 +38,28 @@ import { emptyDraft } from '../../shared/post-draft';
       </p>
 
       <form novalidate>
-        <div class="field">
+        <ap-form-field>
           <label for="s2-content">Content</label>
           <textarea id="s2-content" apTextarea [formField]="composer.content"></textarea>
-        </div>
+          @if (composer.content().touched() && composer.content().invalid()) {
+            <ap-form-message
+              messageType="error"
+              [message]="composer.content().errors()[0].message ?? 'Invalid'"
+            />
+          }
+        </ap-form-field>
 
         <div class="field">
           <label>When</label>
-          <div class="radio-row">
-            <label>
-              <input type="radio" value="now" [formField]="composer.publishMode" />
-              Now
-            </label>
-            <label>
-              <input type="radio" value="scheduled" [formField]="composer.publishMode" />
-              Schedule
-            </label>
-          </div>
+          <!-- ap-radio is a ControlValueAccessor component, bound with [formField] -->
+          <ap-radio radioId="s2-now" value="now" [formField]="composer.publishMode">Now</ap-radio>
+          <ap-radio radioId="s2-scheduled" value="scheduled" [formField]="composer.publishMode">
+            Schedule
+          </ap-radio>
         </div>
 
         @if (model().publishMode === 'scheduled') {
-          <div class="field">
+          <ap-form-field>
             <label for="s2-scheduledAt">Publish at</label>
             <input
               id="s2-scheduledAt"
@@ -55,13 +68,16 @@ import { emptyDraft } from '../../shared/post-draft';
               [formField]="composer.scheduledAt"
             />
             @if (composer.scheduledAt().touched() && composer.scheduledAt().invalid()) {
-              <span class="field__error">{{ composer.scheduledAt().errors()[0].message }}</span>
+              <ap-form-message
+                messageType="error"
+                [message]="composer.scheduledAt().errors()[0].message ?? 'Invalid'"
+              />
             }
-          </div>
+          </ap-form-field>
         }
 
         <div class="actions">
-          <button type="submit" class="primary" [disabled]="composer().invalid()">Schedule</button>
+          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
         </div>
       </form>
 
@@ -71,8 +87,8 @@ import { emptyDraft } from '../../shared/post-draft';
         and nothing to remember to call when the form first loads.
       </p>
 
-      <pre class="demo__state">valid: {{ composer().valid() }}
-{{ model() | json }}</pre>
+      <pre class="demo__state">publishMode: {{ model().publishMode }}
+valid: {{ composer().valid() }}</pre>
     </section>
   `,
 })

@@ -19,7 +19,12 @@ import { Observable, catchError, filter, first, firstValueFrom, map, of, switchM
 
 import { InputDirective } from '@agorapulse/ui-components/input';
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
+import { RadioComponent } from '@agorapulse/ui-components/radio';
 
+import { ChannelPicker } from '../shared/channel-picker';
 import {
   CHANNELS,
   CHANNEL_LABEL,
@@ -83,7 +88,17 @@ const mediaWithinChannelLimit: ValidatorFn = (group): ValidationErrors | null =>
 
 @Component({
   selector: 'app-reactive-page',
-  imports: [ReactiveFormsModule, InputDirective, TextareaDirective, JsonPipe],
+  imports: [
+    ReactiveFormsModule,
+    InputDirective,
+    TextareaDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    RadioComponent,
+    ChannelPicker,
+    JsonPipe,
+  ],
   templateUrl: './reactive-page.html',
 })
 export class ReactivePage {

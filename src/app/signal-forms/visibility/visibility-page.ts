@@ -4,14 +4,13 @@ import { FormField, disabled, form, hidden, required } from '@angular/forms/sign
 
 import { InputDirective } from '@agorapulse/ui-components/input';
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
+import { RadioComponent } from '@agorapulse/ui-components/radio';
 
-import {
-  CHANNELS,
-  CHANNEL_LABEL,
-  Channel,
-  supportsFirstComment,
-  toggleChannel,
-} from '../../shared/channel';
+import { Channel, supportsFirstComment, toggleChannel } from '../../shared/channel';
+import { ChannelPicker } from '../../shared/channel-picker';
 import { emptyDraft } from '../../shared/post-draft';
 
 /**
@@ -23,7 +22,17 @@ import { emptyDraft } from '../../shared/post-draft';
  */
 @Component({
   selector: 'app-signal-visibility-page',
-  imports: [FormField, InputDirective, TextareaDirective, JsonPipe],
+  imports: [
+    FormField,
+    InputDirective,
+    TextareaDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    RadioComponent,
+    ChannelPicker,
+    JsonPipe,
+  ],
   template: `
     <section class="demo">
       <h2>5 · Visibility</h2>
@@ -35,66 +44,55 @@ import { emptyDraft } from '../../shared/post-draft';
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <div class="channels">
-            @for (channel of channels; track channel) {
-              <button
-                type="button"
-                class="channel-chip"
-                [class.is-selected]="model().channels.includes(channel)"
-                (click)="toggle(channel)"
-              >
-                {{ channelLabel[channel] }}
-              </button>
-            }
-          </div>
+          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
         </div>
 
-        <div class="field">
+        <ap-form-field>
           <label for="s5-content">Content</label>
           <textarea id="s5-content" apTextarea [formField]="composer.content"></textarea>
-        </div>
+        </ap-form-field>
 
         <!-- Ask the field whether it should be rendered. -->
         @if (!composer.firstComment().hidden()) {
-          <div class="field">
+          <ap-form-field>
             <label for="s5-firstComment">First comment</label>
             <input id="s5-firstComment" apInput [formField]="composer.firstComment" />
-            <span class="field__hint">Hashtags here keep the caption clean.</span>
             @if (composer.firstComment().touched() && composer.firstComment().invalid()) {
-              <span class="field__error">{{ composer.firstComment().errors()[0].message }}</span>
+              <ap-form-message
+                messageType="error"
+                [message]="composer.firstComment().errors()[0].message ?? 'Invalid'"
+              />
             }
-          </div>
+          </ap-form-field>
+          <span class="field__hint">Hashtags here keep the caption clean.</span>
         }
 
-        <!-- Disabled rather than hidden: visible, greyed out, not validated. -->
         <div class="field">
-          <label for="s5-scheduledAt">
-            Publish at
-            @if (composer.scheduledAt().disabled()) {
-              <span class="field__hint">(switch to Schedule to enable)</span>
-            }
-          </label>
+          <label>When</label>
+          <div class="radio-row">
+            <ap-radio radioId="s5-now" value="now" [formField]="composer.publishMode">Now</ap-radio>
+            <ap-radio radioId="s5-scheduled" value="scheduled" [formField]="composer.publishMode">
+              Schedule
+            </ap-radio>
+          </div>
+        </div>
+
+        <!-- Disabled rather than hidden: visible, greyed out, not validated. -->
+        <ap-form-field>
+          <label for="s5-scheduledAt">Publish at</label>
           <input
             id="s5-scheduledAt"
             type="datetime-local"
             apInput
             [formField]="composer.scheduledAt"
           />
-        </div>
-
-        <div class="radio-row">
-          <label>
-            <input type="radio" value="now" [formField]="composer.publishMode" />
-            Now
-          </label>
-          <label>
-            <input type="radio" value="scheduled" [formField]="composer.publishMode" />
-            Schedule
-          </label>
-        </div>
+        </ap-form-field>
+        @if (composer.scheduledAt().disabled()) {
+          <span class="field__hint">Switch to Schedule to enable</span>
+        }
 
         <div class="actions">
-          <button type="submit" class="primary" [disabled]="composer().invalid()">Schedule</button>
+          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
         </div>
       </form>
 
@@ -112,9 +110,6 @@ scheduledAt disabled: {{ composer.scheduledAt().disabled() }}
   `,
 })
 export class VisibilityPage {
-  protected readonly channels = CHANNELS;
-  protected readonly channelLabel = CHANNEL_LABEL;
-
   protected readonly model = signal(emptyDraft());
 
   protected readonly composer = form(this.model, (path) => {

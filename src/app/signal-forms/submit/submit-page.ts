@@ -3,8 +3,12 @@ import { JsonPipe } from '@angular/common';
 import { FormField, FormRoot, form, required, validate } from '@angular/forms/signals';
 
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
 
-import { CHANNELS, CHANNEL_LABEL, Channel, toggleChannel } from '../../shared/channel';
+import { Channel, toggleChannel } from '../../shared/channel';
+import { ChannelPicker } from '../../shared/channel-picker';
 import { emptyDraft } from '../../shared/post-draft';
 import { PublishApi } from '../../shared/publish-api';
 
@@ -15,10 +19,22 @@ import { PublishApi } from '../../shared/publish-api';
  * field touched. That single attribute replaces the reactive page's
  * `#fd="ngForm"` + `fd.submitted` + `markAllAsTouched()` + the `ViewChild`
  * needed to reset `submitted` afterwards.
+ *
+ * Note: `ap-button` renders `type="button"`, so it can't submit a form on its
+ * own — `requestSubmit()` fires the native submit event that `[formRoot]` hooks.
  */
 @Component({
   selector: 'app-signal-submit-page',
-  imports: [FormField, FormRoot, TextareaDirective, JsonPipe],
+  imports: [
+    FormField,
+    FormRoot,
+    TextareaDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    ChannelPicker,
+    JsonPipe,
+  ],
   template: `
     <section class="demo">
       <h2>7 · Submit</h2>
@@ -31,51 +47,47 @@ import { PublishApi } from '../../shared/publish-api';
         <div class="banner banner--success">Scheduled ({{ published }}).</div>
       }
 
-      <form [formRoot]="composer" novalidate>
+      <form [formRoot]="composer" #formEl novalidate>
         <div class="field">
           <label>Channels</label>
-          <div class="channels">
-            @for (channel of channels; track channel) {
-              <button
-                type="button"
-                class="channel-chip"
-                [class.is-selected]="model().channels.includes(channel)"
-                (click)="toggle(channel)"
-              >
-                {{ channelLabel[channel] }}
-              </button>
-            }
-          </div>
+          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
           @if (composer.channels().touched() && composer.channels().invalid()) {
-            <span class="field__error">{{ composer.channels().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.channels().errors()[0].message ?? 'Invalid'"
+            />
           }
         </div>
 
-        <div class="field">
+        <ap-form-field>
           <label for="s7-content">Content</label>
           <textarea id="s7-content" apTextarea [formField]="composer.content"></textarea>
           @if (composer.content().touched() && composer.content().invalid()) {
-            <span class="field__error">{{ composer.content().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.content().errors()[0].message ?? 'Invalid'"
+            />
           }
-        </div>
+        </ap-form-field>
 
         <div class="actions">
-          <button type="submit" class="primary" [disabled]="composer().submitting()">
-            @if (composer().submitting()) {
-              Scheduling…
-            } @else {
-              Schedule
-            }
-          </button>
+          <ap-button
+            [loading]="composer().submitting()"
+            [disabled]="composer().submitting()"
+            (click)="formEl.requestSubmit()"
+          >
+            Schedule
+          </ap-button>
         </div>
       </form>
 
       <p class="demo__pain demo__win">
-        <strong>Three things you don't write.</strong> Submitting on an empty form shows every
-        error at once — <code>[formRoot]</code> marked them touched. The in-flight state is
-        <code>submitting()</code>, not a boolean you maintain. And the server error is returned from
-        the action, targeted at a field, instead of being pushed in with
-        <code>setErrors</code> and then silently wiped on the next keystroke.
+        <strong>Three things you don't write.</strong> Submitting an empty form shows every error at
+        once — <code>[formRoot]</code> marked them touched. The in-flight state is
+        <code>submitting()</code>, wired straight into <code>ap-button</code>'s
+        <code>loading</code>. And the server error is returned from the action, targeted at a field,
+        instead of being pushed in with <code>setErrors</code> and silently wiped on the next
+        keystroke.
       </p>
 
       <pre class="demo__state">submitting: {{ composer().submitting() }}
@@ -85,9 +97,6 @@ channel errors: {{ composer.channels().errors() | json }}</pre>
 })
 export class SubmitPage {
   private readonly api = inject(PublishApi);
-
-  protected readonly channels = CHANNELS;
-  protected readonly channelLabel = CHANNEL_LABEL;
 
   protected published: string | null = null;
 

@@ -3,14 +3,12 @@ import { JsonPipe } from '@angular/common';
 import { FormField, form, required, validate } from '@angular/forms/signals';
 
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
+import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
+import { ButtonComponent } from '@agorapulse/ui-components/button';
 
-import {
-  CHANNELS,
-  CHANNEL_LABEL,
-  Channel,
-  contentLimitFor,
-  toggleChannel,
-} from '../../shared/channel';
+import { Channel, contentLimitFor, toggleChannel } from '../../shared/channel';
+import { ChannelPicker } from '../../shared/channel-picker';
 import { emptyDraft } from '../../shared/post-draft';
 
 /**
@@ -23,7 +21,15 @@ import { emptyDraft } from '../../shared/post-draft';
  */
 @Component({
   selector: 'app-signal-cross-field-page',
-  imports: [FormField, TextareaDirective, JsonPipe],
+  imports: [
+    FormField,
+    TextareaDirective,
+    FormFieldComponent,
+    FormMessageComponent,
+    ButtonComponent,
+    ChannelPicker,
+    JsonPipe,
+  ],
   template: `
     <section class="demo">
       <h2>3 · Cross-field</h2>
@@ -35,32 +41,23 @@ import { emptyDraft } from '../../shared/post-draft';
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <div class="channels">
-            @for (channel of channels; track channel) {
-              <button
-                type="button"
-                class="channel-chip"
-                [class.is-selected]="model().channels.includes(channel)"
-                (click)="toggle(channel)"
-              >
-                {{ channelLabel[channel] }}
-              </button>
-            }
-          </div>
+          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
         </div>
 
-        <div class="field">
+        <ap-form-field>
           <label for="s3-content">Content</label>
           <textarea id="s3-content" apTextarea [formField]="composer.content"></textarea>
-          <span class="field__hint">{{ model().content.length }} / {{ limit() }}</span>
-
           @if (composer.content().touched() && composer.content().invalid()) {
-            <span class="field__error">{{ composer.content().errors()[0].message }}</span>
+            <ap-form-message
+              messageType="error"
+              [message]="composer.content().errors()[0].message ?? 'Invalid'"
+            />
           }
-        </div>
+        </ap-form-field>
+        <span class="field__hint">{{ model().content.length }} / {{ limit() }}</span>
 
         <div class="actions">
-          <button type="submit" class="primary" [disabled]="composer().invalid()">Schedule</button>
+          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
         </div>
       </form>
 
@@ -77,9 +74,6 @@ errors: {{ composer.content().errors() | json }}</pre>
   `,
 })
 export class CrossFieldPage {
-  protected readonly channels = CHANNELS;
-  protected readonly channelLabel = CHANNEL_LABEL;
-
   protected readonly model = signal(emptyDraft());
 
   /** Plain derived state — the same helper the other two implementations use. */
