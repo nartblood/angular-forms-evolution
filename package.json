@@ -1,6 +1,9 @@
 {
   "name": "angular-forms-evolution",
   "version": "0.0.0",
+  "engines": {
+    "node": ">=22.22.3 <23 || >=24.15.0"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

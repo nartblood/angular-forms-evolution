@@ -40,11 +40,15 @@ The async demos run against an `HttpInterceptorFn` that fakes the backend, so
 
 ## Running it
 
+Angular CLI 22 requires Node **>= 22.22.3** (or >= 24.15.0). The `.nvmrc` pins 22.22.3, which also
+satisfies the platform's `>=22.17.1 <23` range:
+
 ```bash
+nvm install && nvm use   # reads .nvmrc
 npm install
-npm start          # http://localhost:4200
+npm start                # http://localhost:4200
 npm run build
-npm test           # Vitest
+npm test                 # Vitest
 ```
 
 ## Design system
