@@ -1,0 +1,14 @@
+// Agorapulse design system variables, mirroring how the platform wires them.
+// The compiled theme + CSS custom properties are injected via angular.json "styles".
+@use '@agorapulse/ui-theme/assets/style/variables';
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ap-font-family, system-ui, sans-serif);
+  background: var(--ap-color-background, #f5f6f8);
+  color: var(--ap-color-text, #1c1e21);
+}

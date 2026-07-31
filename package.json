@@ -1,0 +1,44 @@
+{
+  "name": "angular-forms-evolution",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "packageManager": "npm@11.16.0",
+  "dependencies": {
+    "@agorapulse/ngx-daterangepicker-material": "^6.0.5",
+    "@agorapulse/ui-animations": "^22.0.0",
+    "@agorapulse/ui-components": "^22.0.4",
+    "@agorapulse/ui-symbol": "^22.0.0",
+    "@agorapulse/ui-theme": "^22.0.1",
+    "@angular/animations": "^22.1.0",
+    "@angular/cdk": "^22.1.0",
+    "@angular/common": "^22.1.0",
+    "@angular/compiler": "^22.1.0",
+    "@angular/core": "^22.1.0",
+    "@angular/forms": "^22.1.0",
+    "@angular/material": "^22.1.0",
+    "@angular/platform-browser": "^22.1.0",
+    "@angular/router": "^22.1.0",
+    "@ng-select/ng-select": "^23.5.1",
+    "dayjs": "^1.11.21",
+    "es-toolkit": "^1.39.8",
+    "ngxtension": "^7.2.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.1.2",
+    "@angular/cli": "^22.1.2",
+    "@angular/compiler-cli": "^22.1.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.8"
+  }
+}
