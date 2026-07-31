@@ -15,7 +15,7 @@ import { MediaItem, emptyDraft, emptyMediaItem, existingDraft } from '../shared/
 import { composerSchema, mediaItemSchema } from './composer-schema';
 import { CodePanel } from '../shared/code-panel';
 import {
-  SIGNAL_SCHEMAS_COMPOSED,
+  SIGNAL_SCHEMAS_COMPOSER,
   SIGNAL_SCHEMAS_LOAD,
   SIGNAL_SCHEMAS_REUSE,
   SIGNAL_SCHEMAS_SUB,
@@ -155,7 +155,10 @@ import {
       </form>
 
       <app-code label="1 · a sub-schema, on its own" [code]="subSnippet" />
-      <app-code label="2 · composed into the big schema" [code]="composedSnippet" />
+      <app-code
+        label="2 · composed into the whole schema — every rule in one place"
+        [code]="composerSnippet"
+      />
       <app-code label="…and the whole form" [code]="usageSnippet" />
       <app-code label="Loading is one assignment" [code]="loadSnippet" />
 
@@ -211,7 +214,7 @@ import {
 })
 export class SchemasPage {
   protected readonly subSnippet = SIGNAL_SCHEMAS_SUB;
-  protected readonly composedSnippet = SIGNAL_SCHEMAS_COMPOSED;
+  protected readonly composerSnippet = SIGNAL_SCHEMAS_COMPOSER;
   protected readonly reuseSnippet = SIGNAL_SCHEMAS_REUSE;
   protected readonly usageSnippet = SIGNAL_SCHEMAS_USAGE;
   protected readonly loadSnippet = SIGNAL_SCHEMAS_LOAD;
