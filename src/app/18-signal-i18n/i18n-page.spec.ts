@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
 import { FieldTree } from '@angular/forms/signals';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -9,25 +8,20 @@ import { PostDraft } from '../shared/post-draft';
 import { provideDemoTranslations } from '../shared/i18n';
 
 /**
- * The claim this page makes: no copy in the schema, and messages re-translate
- * live when the language changes. Both are asserted here — the second is the
- * one that would silently fail, because `TranslateService.instant()` is not
- * reactive on its own.
- *
- * Asserted on the rendered text rather than on a component method, because the
- * display now goes through the shared `<app-field-error>` the shared display component.
+ * The claim: the rules produce finished, translated copy, and the view just binds
+ * it. Plus the honest limit — that copy is built when validation runs, so a live
+ * language switch leaves it behind, while the pipe fallback next to it follows.
  */
-describe('S9 · translated validation messages', () => {
+describe('S9 · translated messages', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideRouter([]), provideDemoTranslations()],
+      providers: [provideHttpClient(), provideDemoTranslations()],
     });
   });
 
   interface PageInternals {
     model: { set: (value: PostDraft) => void };
     composer: FieldTree<PostDraft>;
-    messages: { use: (lang: string) => void; lang: () => string };
   }
 
   function messagesOf(fixture: ComponentFixture<I18nPage>): string[] {
@@ -37,59 +31,61 @@ describe('S9 · translated validation messages', () => {
   }
 
   async function setup() {
-    const translate = TestBed.inject(TranslateService);
-    translate.use('en');
+    TestBed.inject(TranslateService).use('en');
 
     const fixture = TestBed.createComponent(I18nPage);
     const page = fixture.componentInstance as unknown as PageInternals;
 
-    // Errors only render once the field is touched — blur, or submit. See S9.
-    page.composer.content().markAsTouched();
-    page.composer.channels().markAsTouched();
+    // Errors only render once the field is touched — blur, or submit.
+    page.composer().markAsTouched();
     await fixture.whenStable();
 
     return { fixture, page };
   }
 
-  it('resolves a validator kind through the translation table', async () => {
+  it('shows the sentence the rule produced, field name included', async () => {
     const { fixture } = await setup();
 
-    // `required` emits kind 'required' with no message; the view supplies copy.
-    expect(messagesOf(fixture)).toEqual(['Pick at least one channel', 'This field is required']);
+    // content + firstComment come from `message: () => …` on the rules;
+    // channels has no message, so the template maps its `kind` to a key.
+    expect(messagesOf(fixture)).toEqual([
+      'Content is required',
+      'Pick at least one channel',
+    ]);
   });
 
-  it('interpolates params from the error object itself', async () => {
+  it('interpolates params passed at the rule', async () => {
     const { fixture, page } = await setup();
 
-    // Long enough to clear `required`, short enough to trip minLength(10).
     page.model.set({
       channels: ['x'],
       content: 'short',
       publishMode: 'now',
       scheduledAt: '',
       media: [],
-      firstComment: '',
+      firstComment: 'a'.repeat(30),
     });
     await fixture.whenStable();
 
-    expect(messagesOf(fixture)).toEqual(['Write at least 10 characters']);
+    expect(messagesOf(fixture)).toEqual([
+      'Content: at least 10 characters',
+      'First comment: 20 characters maximum',
+    ]);
   });
 
-  it('re-translates existing errors when the language changes — both variants', async () => {
-    const { fixture, page } = await setup();
-    expect(messagesOf(fixture)).toContain('This field is required');
+  it('leaves rule-built copy behind on a live language switch, unlike the pipe', async () => {
+    const { fixture } = await setup();
 
-    page.messages.use('fr');
+    TestBed.inject(TranslateService).use('fr');
     await fixture.whenStable();
 
-    // First message = channels, resolved by the `translate` pipe in the template.
-    // Second = content, resolved by TranslateService.instant() in TypeScript —
-    // and that one would still read English without the onLangChange → signal
-    // bridge. Asserting both is what makes the comparison honest.
-    expect(page.messages.lang()).toBe('fr');
+    // The pipe (channels) switches; the message built inside the validator does
+    // not, because nothing in that computation depends on the language. This is
+    // the caveat the page states, and it costs us nothing: the platform picks a
+    // language at bootstrap and never changes it live.
     expect(messagesOf(fixture)).toEqual([
+      'Content is required',
       'Sélectionnez au moins un canal',
-      'Ce champ est obligatoire',
     ]);
   });
 });

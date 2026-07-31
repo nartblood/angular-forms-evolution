@@ -58,10 +58,10 @@ describe('design system probe', () => {
 });
 
 /**
- * What makes `<app-field-error [field]="composer.channels" />` legitimate: a
- * subfield is a self-contained handle, and it is the *same* handle every time you
- * ask for it. If property access minted a new object per read, every change
- * detection run would look like a new input value.
+ * What makes `firstErrorMessage(this.composer.content)` legitimate: a subfield is a
+ * self-contained handle, and it is the *same* handle every time you ask for it —
+ * so it can be passed to a helper, or bound to a child component, without the
+ * caller holding the root form.
  */
 describe('field tree probe', () => {
   function setup() {

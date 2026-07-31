@@ -57,11 +57,12 @@ import {
   SIGNAL_SCHEMAS_USAGE,
 } from './17-signal-schemas/schemas-snippets';
 import {
-  I18N_BRIDGE,
-  I18N_PARAMS,
-  I18N_RESOLVER,
-  I18N_SCHEMA,
-  I18N_TEMPLATE,
+  I18N_FALLBACK,
+  I18N_LIVE_SWITCH,
+  I18N_RULES,
+  I18N_VIEW_HTML,
+  I18N_VIEW_TS,
+  I18N_VIEW_WIRING,
 } from './18-signal-i18n/i18n-snippets';
 import { ZOD_SCHEMA, ZOD_WIRING } from './19-signal-zod/zod-snippets';
 
@@ -121,11 +122,13 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
   ['S8 whole schema', SIGNAL_SCHEMAS_COMPOSER, '17-signal-schemas/composer-schema.ts'],
   ['S8 reuse', SIGNAL_SCHEMAS_REUSE, '17-signal-schemas/schemas-page.ts'],
 
-  ['S9 i18n schema', I18N_SCHEMA, '18-signal-i18n/i18n-page.ts'],
-  ['S9 i18n template variant', I18N_TEMPLATE, '18-signal-i18n/i18n-page.ts'],
-  ['S9 i18n params', I18N_PARAMS, 'shared/field-error.ts'],
-  ['S9 i18n resolver', I18N_RESOLVER, 'shared/i18n.ts'],
-  ['S9 i18n bridge', I18N_BRIDGE, 'shared/i18n.ts'],
+  ['S9 rules carry the copy', I18N_RULES, '18-signal-i18n/i18n-page.ts'],
+  ['S9 view helper', I18N_VIEW_TS, 'shared/first-error-message.ts'],
+  ['S9 view wiring', I18N_VIEW_WIRING, '18-signal-i18n/i18n-page.ts'],
+  ['S9 binding', I18N_VIEW_HTML, '18-signal-i18n/i18n-page.ts'],
+  ['S9 fallback', I18N_FALLBACK, '18-signal-i18n/i18n-page.ts'],
+  // Guarded against the spec that measures it, so the escape hatch can't rot.
+  ['S9 live-switch escape hatch', I18N_LIVE_SWITCH, 'shared/i18n.spec.ts'],
 
   ['Bonus zod schema', ZOD_SCHEMA, '19-signal-zod/zod-page.ts'],
   ['Bonus zod wiring', ZOD_WIRING, '19-signal-zod/zod-page.ts'],

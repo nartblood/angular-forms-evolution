@@ -33,7 +33,7 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | `/signal/async` | | `validateHttp` — no debounce, cache or `first()` to hand-roll |
 | `/signal/submit` | | `[formRoot]`, `submitting()`, `errorSummary()`, field-targeted server errors |
 | `/signal/schemas` | | every rule extracted to `composer-schema.ts`, reused and unit-tested |
-| `/signal/i18n` | | translated messages two ways: the `translate` pipe vs `instant()` in TypeScript |
+| `/signal/i18n` | | translated copy declared at the rule (`message: () => translate.instant(…)`), and what the view is left with |
 | `/signal/zod` | | **bonus** — the same rules as Zod via `validateStandardSchema` |
 
 The async demos run against an `HttpInterceptorFn` that fakes the backend, so
@@ -86,7 +86,7 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
 
 ## Tests
 
-`npm test` — 88 tests, in four kinds:
+`npm test` — 87 tests, in four kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.
@@ -100,6 +100,10 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
   `i18n-page.spec.ts`): `ap-checkbox` emits `(change)`, `ap-button` is `type="button"`,
   `ap-radio` writes back through `[formField]`, and error messages re-translate on language
   switch. Each pins down something that would otherwise fail silently on stage.
+- **Translation timing** (`shared/i18n.spec.ts`): a `message` function puts translated, interpolated
+  copy on the error; it does *not* re-translate on a live language change; and reading a language
+  signal inside it makes it. Three tests, because the middle one is the caveat of the whole
+  approach.
 - **Error display** (`shared/field-error.spec.ts`, `submit-page.spec.ts`): errors stay hidden
   until the field is touched, submitting reveals every field at once (`submit()` calls
   `markAsTouched()`, which cascades), `reset()` hides them again, and `errorSummary()` names the
