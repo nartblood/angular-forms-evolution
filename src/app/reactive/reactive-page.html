@@ -1,0 +1,164 @@
+<section class="demo">
+  <h2>Reactive</h2>
+  <p class="demo__intro">
+    The same composer with every rule the product asks for. Explicit, testable, battle-tested —
+    and nine mechanisms we had to build ourselves. Each one is marked
+    <code>PAIN n</code> in <code>reactive-page.ts</code>.
+  </p>
+
+  @if (saved) {
+    <div class="banner banner--success">{{ saved }}</div>
+  }
+  @if (serverError) {
+    <div class="banner banner--error">{{ serverError }}</div>
+  }
+
+  <!-- `#fd="ngForm"` on a [formGroup] form: FormGroupDirective is exported as
+       'ngForm', and it is the only way to reach `submitted`. -->
+  <form [formGroup]="form" #fd="ngForm" (ngSubmit)="submit(fd)" novalidate>
+    <div class="field">
+      <label>Channels</label>
+      <div class="channels">
+        @for (channel of channels; track channel) {
+          <button
+            type="button"
+            class="channel-chip"
+            [class.is-selected]="form.controls.channels.value.includes(channel)"
+            (click)="toggleChannel(channel)"
+          >
+            {{ channelLabel[channel] }}
+          </button>
+        }
+      </div>
+
+      <!-- Cross-field errors live on the ROOT group; re-homed here by hand. -->
+      @if (form.controls.channels.touched || fd.submitted) {
+        @if (form.hasError('mediaRequired')) {
+          <span class="field__error">
+            {{ form.getError('mediaRequired').channels.join(', ') }} requires at least one image
+          </span>
+        }
+        @if (form.hasError('tooManyMedia')) {
+          <span class="field__error">
+            At most {{ form.getError('tooManyMedia').max }} images for the selected channels
+          </span>
+        }
+        @if (form.controls.channels.hasError('server')) {
+          <span class="field__error">
+            Server: {{ form.controls.channels.getError('server') }}
+          </span>
+        }
+      }
+    </div>
+
+    <div class="field">
+      <label for="r-content">Content</label>
+      <textarea id="r-content" apTextarea formControlName="content"></textarea>
+      <span class="field__hint">
+        {{ form.controls.content.value.length }} / {{ contentLimit }}
+      </span>
+
+      @if (form.controls.content.pending) {
+        <span class="field__pending">Checking for duplicates…</span>
+      }
+      @if (form.controls.content.touched || fd.submitted) {
+        @if (form.controls.content.hasError('required')) {
+          <span class="field__error">Content is required</span>
+        }
+        @if (form.controls.content.hasError('duplicateContent')) {
+          <span class="field__error">You already published this content</span>
+        }
+        @if (form.controls.content.hasError('duplicateCheckFailed')) {
+          <span class="field__error">Could not verify duplicates</span>
+        }
+        <!-- again: the length rule is a root error, displayed under content -->
+        @if (form.hasError('contentTooLong')) {
+          <span class="field__error">
+            {{ form.getError('contentTooLong').actual }} characters — limit is
+            {{ form.getError('contentTooLong').limit }}
+          </span>
+        }
+      }
+    </div>
+
+    <div class="field">
+      <label>When</label>
+      <div class="radio-row">
+        <label><input type="radio" formControlName="publishMode" value="now" /> Now</label>
+        <label>
+          <input type="radio" formControlName="publishMode" value="scheduled" /> Schedule
+        </label>
+      </div>
+    </div>
+
+    @if (form.controls.publishMode.value === 'scheduled') {
+      <div class="field">
+        <label for="r-scheduledAt">Publish at</label>
+        <input id="r-scheduledAt" type="datetime-local" apInput formControlName="scheduledAt" />
+        @if (
+          (form.controls.scheduledAt.touched || fd.submitted) &&
+          form.controls.scheduledAt.hasError('required')
+        ) {
+          <span class="field__error">Pick a date and time</span>
+        }
+      </div>
+    }
+
+    <div class="field">
+      <label>Media</label>
+      <div formArrayName="media">
+        @for (item of media.controls; track $index) {
+          <div class="media-row" [formGroupName]="$index">
+            <div>
+              <input apInput formControlName="url" placeholder="https://…" />
+              @if ((item.controls.url.touched || fd.submitted) && item.controls.url.invalid) {
+                <span class="field__error">URL required</span>
+              }
+            </div>
+            <div>
+              <input apInput formControlName="altText" placeholder="Alt text" />
+              @if (
+                (item.controls.altText.touched || fd.submitted) && item.controls.altText.invalid
+              ) {
+                <span class="field__error">Alt text required</span>
+              }
+            </div>
+            <button type="button" class="ghost" (click)="removeMedia($index)">Remove</button>
+          </div>
+        }
+      </div>
+      <button type="button" class="ghost" (click)="addMedia()">Add media</button>
+    </div>
+
+    <!-- Disabled when no channel supports it — and then it vanishes from
+         form.value, which is why submit() uses getRawValue(). -->
+    <div class="field">
+      <label for="r-firstComment">
+        First comment
+        @if (form.controls.firstComment.disabled) {
+          <span class="field__hint">(Instagram or LinkedIn only)</span>
+        }
+      </label>
+      <input id="r-firstComment" apInput formControlName="firstComment" />
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="primary">Schedule</button>
+      <button type="button" class="ghost" (click)="loadExisting()">Load existing draft</button>
+    </div>
+  </form>
+
+  <p class="demo__pain">
+    <strong>Try these.</strong>
+    <br />• Select X, then paste 300 characters — the error is on the root group, shown under
+    <em>content</em> by hand.
+    <br />• Type "behind the scenes" — the async duplicate check runs (700&nbsp;ms), and
+    <code>pending</code> gates submit.
+    <br />• Select Instagram and submit — the server rejects it, and the error is attached with
+    <code>setErrors</code>… then disappears as soon as you edit the field again.
+    <br />• Hit <em>Load existing draft</em> — that one button needs <code>patchValue</code>,
+    an array rebuild, and a manual replay of every rule.
+  </p>
+
+  <pre class="demo__state">{{ form.getRawValue() | json }}</pre>
+</section>

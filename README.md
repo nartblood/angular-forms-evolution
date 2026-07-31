@@ -4,13 +4,39 @@ Companion code for a talk on Angular's three form APIs, built on **Angular 22** 
 public [`@agorapulse/ui-components`](https://www.npmjs.com/package/@agorapulse/ui-components)
 design system.
 
-The same form is implemented three times so the differences are measurable rather than asserted:
+## The subject: schedule a social post
+
+One form, eight fields, and rules that are genuinely interesting rather than contrived:
+
+| Field | Rule |
+|---|---|
+| `channels` | at least one |
+| `content` | required; **max length = the strictest selected channel** (X 280, IG 2200, LI 3000) |
+| `content` | server-side **duplicate check** (async) |
+| `publishMode` | `now` or `scheduled` |
+| `scheduledAt` | required, and in the future, **only when** scheduling |
+| `media[]` | Instagram requires ≥ 1; X allows ≤ 4; each item needs a URL and alt text |
+| `firstComment` | only exists for Instagram / LinkedIn |
+| submit | the server can reject one field ("Instagram token expired") |
+
+## Routes
 
 | Route | API | What it shows |
 |---|---|---|
 | `/template-driven` | `ngModel` | the five-minute form, and where it stops scaling |
-| `/reactive` | `FormGroup` / `FormControl` | the workhorse, and the mechanisms every project reimplements |
-| `/signal-forms` | `@angular/forms/signals` | the same rules, declared once |
+| `/reactive` | `FormGroup` / `FormControl` | ten mechanisms every project reimplements, marked `PAIN n` in the source |
+| `/signal/minimal` | Signal Forms | the model *is* the form |
+| `/signal/conditional` | | `required({when})` instead of `setValidators` + `updateValueAndValidity` |
+| `/signal/cross-field` | | `valueOf()` — the error lands on the field that renders it |
+| `/signal/arrays` | | `applyEach`, and add/remove as `model.update()` |
+| `/signal/visibility` | | `hidden()` / `disabled()`, without losing data from the payload |
+| `/signal/async` | | `validateHttp` — no debounce, cache or `first()` to hand-roll |
+| `/signal/submit` | | `[formRoot]`, `submitting()`, field-targeted server errors |
+| `/signal/schemas` | | every rule extracted to `composer-schema.ts`, reused and unit-tested |
+| `/signal/zod` | | **bonus** — the same rules as Zod via `validateStandardSchema` |
+
+The async demos run against an `HttpInterceptorFn` that fakes the backend, so
+`validateHttp` performs a real request and the code stays production-shaped.
 
 ## Running it
 
@@ -38,6 +64,23 @@ Worth noting for the talk: `apInput` is a **directive on a native `<input>`**, n
 component. So the same markup composes with all three form APIs —
 `[(ngModel)]`, `formControlName`, and `[formField]` — with no adapter layer.
 
-## Status
+## Tests
 
-Scaffold and design system integration are done and building. Example forms are in progress.
+`npm test` — 20 tests. Two kinds:
+
+- **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
+  type-checks; this proves the Signal Forms calls behave at runtime.
+- **Behaviour** (`composer-schema.spec.ts`): the rules themselves, with no component and no DOM.
+  Including the one that matters most for the talk — deselect X with 281 characters typed and the
+  error clears with no revalidation call, because the rule is derived rather than applied.
+
+## Caveats
+
+Signal Forms is **experimental**: the API can change between minor versions. Everything here was
+written against the docs for Angular 22.1 and verified by the test suite, but check before copying
+into the platform.
+
+The design system's composite `ControlValueAccessor` components (`ap-password-input`,
+`ap-slide-toggle`, `ap-legacy-select`, `ap-phone-number-input`) are **not** exercised here — the
+demos use native inputs with `[apInput]` / `[apTextarea]`. Whether `[formField]` works with those
+CVA components is the one open question for a real migration.
