@@ -6,9 +6,37 @@
  * form — not just declared.
  */
 
+/**
+ * From `shared/validators.ts`. There is no separate "custom validator" concept:
+ * a shared rule is a function taking a `SchemaPath` and calling `validate()`,
+ * so it composes exactly like `required` or `minLength`.
+ */
+export const SIGNAL_SCHEMAS_CUSTOM_RULE = `/** Social platforms reject plain-http media; require TLS. */
+export function httpsUrl(path: SchemaPath<string>, options?: { message?: string }): void {
+  validate(path, ({ value }) => {
+    const raw = value().trim();
+    if (!raw) return null; // \`required\` is a separate, composable concern
+
+    let parsed: URL;
+    try {
+      parsed = new URL(raw);
+    } catch {
+      return { kind: 'url', message: options?.message ?? 'Enter a valid URL' };
+    }
+
+    return parsed.protocol === 'https:'
+      ? null
+      : { kind: 'httpsUrl', message: options?.message ?? 'The URL must use https' };
+  });
+}`;
+
 /** From `composer-schema.ts`. */
 export const SIGNAL_SCHEMAS_SUB = `export const mediaItemSchema = schema<MediaItem>((item) => {
   required(item.url, { message: 'URL is required' });
+
+  // A shared custom rule, used exactly like a built-in one.
+  httpsUrl(item.url);
+
   required(item.altText, { message: 'Alt text is required' });
 });`;
 
@@ -36,6 +64,10 @@ export const SIGNAL_SCHEMAS_COMPOSER = `export const composerSchema = schema<Pos
         }
       : null;
   });
+
+  // Another shared custom rule — and it accepts a \`when\` alongside, so custom
+  // and conditional compose without any extra machinery.
+  maxHashtags(path.content, 5);
 
   required(path.scheduledAt, {
     when: ({ valueOf }) => valueOf(path.publishMode) === 'scheduled',

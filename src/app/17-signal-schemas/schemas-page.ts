@@ -16,6 +16,7 @@ import { composerSchema, mediaItemSchema } from './composer-schema';
 import { CodePanel } from '../shared/code-panel';
 import {
   SIGNAL_SCHEMAS_COMPOSER,
+  SIGNAL_SCHEMAS_CUSTOM_RULE,
   SIGNAL_SCHEMAS_LOAD,
   SIGNAL_SCHEMAS_REUSE,
   SIGNAL_SCHEMAS_SUB,
@@ -154,9 +155,13 @@ import {
         </div>
       </form>
 
-      <app-code label="1 · a sub-schema, on its own" [code]="subSnippet" />
       <app-code
-        label="2 · composed into the whole schema — every rule in one place"
+        label="1 · a shared custom rule — just a function calling validate()"
+        [code]="customRuleSnippet"
+      />
+      <app-code label="2 · a sub-schema using it, next to built-ins" [code]="subSnippet" />
+      <app-code
+        label="3 · composed into the whole schema — every rule in one place"
         [code]="composerSnippet"
       />
       <app-code label="…and the whole form" [code]="usageSnippet" />
@@ -199,7 +204,7 @@ import {
         </ap-button>
       </form>
 
-      <app-code label="3 · reused by an unrelated form" [code]="reuseSnippet" />
+      <app-code label="4 · reused by an unrelated form" [code]="reuseSnippet" />
 
       <p class="demo__pain demo__win">
         <strong>Loading is one assignment.</strong> <code>model.set(draft)</code> — no event
@@ -213,6 +218,7 @@ import {
   `,
 })
 export class SchemasPage {
+  protected readonly customRuleSnippet = SIGNAL_SCHEMAS_CUSTOM_RULE;
   protected readonly subSnippet = SIGNAL_SCHEMAS_SUB;
   protected readonly composerSnippet = SIGNAL_SCHEMAS_COMPOSER;
   protected readonly reuseSnippet = SIGNAL_SCHEMAS_REUSE;

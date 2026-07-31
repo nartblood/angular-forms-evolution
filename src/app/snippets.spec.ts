@@ -44,6 +44,7 @@ import {
 } from './16-signal-submit/submit-snippets';
 import {
   SIGNAL_SCHEMAS_COMPOSER,
+  SIGNAL_SCHEMAS_CUSTOM_RULE,
   SIGNAL_SCHEMAS_LOAD,
   SIGNAL_SCHEMAS_REUSE,
   SIGNAL_SCHEMAS_SUB,
@@ -105,6 +106,7 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
 
   ['S8 usage', SIGNAL_SCHEMAS_USAGE, '17-signal-schemas/schemas-page.ts'],
   ['S8 load', SIGNAL_SCHEMAS_LOAD, '17-signal-schemas/schemas-page.ts'],
+  ['S8 custom rule', SIGNAL_SCHEMAS_CUSTOM_RULE, 'shared/validators.ts'],
   ['S8 sub-schema', SIGNAL_SCHEMAS_SUB, '17-signal-schemas/composer-schema.ts'],
   ['S8 whole schema', SIGNAL_SCHEMAS_COMPOSER, '17-signal-schemas/composer-schema.ts'],
   ['S8 reuse', SIGNAL_SCHEMAS_REUSE, '17-signal-schemas/schemas-page.ts'],
@@ -126,7 +128,11 @@ describe('on-screen snippets match their source', () => {
 
       expect(
         mismatch,
-        mismatch ? `Snippet drifted — line not found in source: ${mismatch.firstMissingLine}` : '',
+        mismatch
+          ? mismatch.reason === 'absent'
+            ? `Snippet drifted — this line is no longer in the source: ${mismatch.firstMissingLine}`
+            : `Snippet drifted — every line still exists, but not contiguously. Something was inserted or reordered around: ${mismatch.firstMissingLine}`
+          : '',
       ).toBeNull();
     });
   }

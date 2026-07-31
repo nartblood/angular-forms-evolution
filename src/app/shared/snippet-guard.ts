@@ -19,6 +19,10 @@ function significantLines(source: string): string[] {
 }
 
 export interface SnippetMismatch {
+  /** 'absent' — the line isn't in the source at all. 'moved' — every line
+   *  exists but no longer as one contiguous run, so something was inserted or
+   *  reordered between them. */
+  reason: 'absent' | 'moved';
   firstMissingLine: string;
   index: number;
 }
@@ -31,7 +35,9 @@ export function findSnippetMismatch(snippet: string, source: string): SnippetMis
   const needle = significantLines(snippet);
   const haystack = significantLines(source);
 
-  if (needle.length === 0) return { firstMissingLine: '<empty snippet>', index: 0 };
+  if (needle.length === 0) {
+    return { reason: 'absent', firstMissingLine: '<empty snippet>', index: 0 };
+  }
 
   for (let start = 0; start + needle.length <= haystack.length; start++) {
     let matched = 0;
@@ -41,11 +47,14 @@ export function findSnippetMismatch(snippet: string, source: string): SnippetMis
     if (matched === needle.length) return null;
   }
 
-  // Report the line that most often failed to line up: the first one absent
-  // from the source at all, or else the first line of the snippet.
+  // Distinguish the two failure modes: a line that no longer exists (the code
+  // changed) from lines that all exist but no longer adjacently (something was
+  // inserted between them). Reporting the second as "not found" sends whoever
+  // hits it looking for the wrong thing.
   const missing = needle.find((line) => !haystack.includes(line));
-  return {
-    firstMissingLine: missing ?? needle[0],
-    index: missing ? needle.indexOf(missing) : 0,
-  };
+  if (missing) {
+    return { reason: 'absent', firstMissingLine: missing, index: needle.indexOf(missing) };
+  }
+
+  return { reason: 'moved', firstMissingLine: needle[0], index: 0 };
 }

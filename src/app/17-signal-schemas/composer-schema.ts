@@ -7,6 +7,7 @@ import {
   supportsFirstComment,
 } from '../shared/channel';
 import { MediaItem, PostDraft } from '../shared/post-draft';
+import { httpsUrl, maxHashtags } from '../shared/validators';
 
 /**
  * The composer's rules as a standalone, reusable artifact.
@@ -19,6 +20,10 @@ import { MediaItem, PostDraft } from '../shared/post-draft';
 
 export const mediaItemSchema = schema<MediaItem>((item) => {
   required(item.url, { message: 'URL is required' });
+
+  // A shared custom rule, used exactly like a built-in one.
+  httpsUrl(item.url);
+
   required(item.altText, { message: 'Alt text is required' });
 });
 
@@ -40,6 +45,10 @@ export const composerSchema = schema<PostDraft>((path) => {
         }
       : null;
   });
+
+  // Another shared custom rule — and it accepts a `when` alongside, so custom
+  // and conditional compose without any extra machinery.
+  maxHashtags(path.content, 5);
 
   required(path.scheduledAt, {
     when: ({ valueOf }) => valueOf(path.publishMode) === 'scheduled',

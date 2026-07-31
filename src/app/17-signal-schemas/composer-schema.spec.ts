@@ -88,6 +88,29 @@ describe('composerSchema', () => {
     expect(composer().valid()).toBe(true);
   });
 
+  it('runs shared custom rules inside a schema, next to built-in ones', () => {
+    // maxHashtags() is a plain function calling validate() — declared in
+    // shared/validators.ts, used inside composerSchema like any built-in.
+    const { composer } = composerFor({
+      channels: ['x'],
+      content: 'launch #a #b #c #d #e #f',
+    });
+
+    expect(composer.content().errors().map((error) => error.kind)).toContain('maxHashtags');
+  });
+
+  it('runs shared custom rules through applyEach, per array item', () => {
+    // httpsUrl() lives in mediaItemSchema, which composerSchema applies to
+    // every media item — a custom rule reached through two levels of schema.
+    const { composer } = composerFor({
+      channels: ['x'],
+      content: 'Hello',
+      media: [{ url: 'http://example.com/a.jpg', altText: 'A photo' }],
+    });
+
+    expect(composer.media[0].url().errors()[0].kind).toBe('httpsUrl');
+  });
+
   it('reuses mediaItemSchema in a form that has no post around it', () => {
     // The claim S8 makes: one definition, two unrelated forms, no repeated rules.
     const bulk = signal([{ url: '', altText: '' }]);
