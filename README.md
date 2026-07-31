@@ -86,13 +86,20 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
 
 ## Tests
 
-`npm test` — 20 tests. Two kinds:
+`npm test` — 68 tests, in four kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.
 - **Behaviour** (`composer-schema.spec.ts`): the rules themselves, with no component and no DOM.
   Including the one that matters most for the talk — deselect X with 281 characters typed and the
   error clears with no revalidation call, because the rule is derived rather than applied.
+- **Snippet drift** (`snippets.spec.ts`): every code panel on screen is asserted to be a verbatim
+  run of lines from its source file. `?raw` source imports would remove the copy entirely, but
+  `@angular/build`'s esbuild ignores the suffix, so the copy is guarded instead.
+- **Design system contracts** (`probe.spec.ts`, `conditional-page.spec.ts`,
+  `i18n-page.spec.ts`): `ap-checkbox` emits `(change)`, `ap-button` is `type="button"`,
+  `ap-radio` writes back through `[formField]`, and error messages re-translate on language
+  switch. Each pins down something that would otherwise fail silently on stage.
 
 ## Caveats
 
