@@ -200,3 +200,19 @@ textarea[apTextarea] {
   gap: 0.75rem;
   margin-top: 1.25rem;
 }
+
+/* Form-level error summary (S9), fed by errorSummary(). */
+.error-summary {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+
+  li {
+    margin-top: 0.15rem;
+  }
+
+  code {
+    background: rgb(0 0 0 / 6%);
+    border-radius: 3px;
+    padding: 0 0.2em;
+  }
+}

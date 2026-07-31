@@ -31,15 +31,22 @@ readonly lang = toSignal(
   { initialValue: this.translate.currentLang || 'en' },
 );`;
 
-export const I18N_PARAMS = `protected readonly contentError = computed(() => {
-  const state = this.composer.content();
-  const error = state.errors()[0];
-  if (!error) return null;
+/**
+ * From `shared/field-error.ts` — the display component built in S9. This page
+ * resolves no messages of its own: it renders `<app-field-error [field]="…" />`
+ * and the same 12 lines run for every field, on every page.
+ */
+export const I18N_PARAMS = `private text(state: FieldState<T>, error: ValidationError): string {
+  if (error.message) return error.message;
 
-  // Interpolation params come from the validator itself: minLength() is a
-  // constraint signal, so changing the rule changes the copy automatically.
-  return this.messages.message({
+  // No copy: translate the kind, and take interpolation params from the
+  // field's own constraint signals — change \`minLength(path.content, 10)\` to
+  // 20 and the sentence follows, with no edit to any translation file.
+  return this.i18n.message({
     ...error,
     minLength: state.minLength?.(),
+    maxLength: state.maxLength?.(),
+    min: state.min?.(),
+    max: state.max?.(),
   } as unknown as FieldError);
-});`;
+}`;

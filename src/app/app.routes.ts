@@ -68,15 +68,20 @@ export const routes: Routes = [
     loadComponent: () => import('./17-signal-schemas/schemas-page').then((m) => m.SchemasPage),
   },
   {
-    path: 'signal/zod',
-    title: 'Signal · Zod',
-    loadComponent: () => import('./19-signal-zod/zod-page').then((m) => m.ZodPage),
+    path: 'signal/errors',
+    title: 'S9 · Errors',
+    loadComponent: () => import('./18-signal-errors/errors-page').then((m) => m.ErrorsPage),
   },
-
   {
     path: 'signal/i18n',
     title: 'S10 · Translations',
-    loadComponent: () => import('./18-signal-i18n/i18n-page').then((m) => m.I18nPage),
+    loadComponent: () => import('./19-signal-i18n/i18n-page').then((m) => m.I18nPage),
+  },
+
+  {
+    path: 'signal/zod',
+    title: 'Bonus · Zod',
+    loadComponent: () => import('./20-signal-zod/zod-page').then((m) => m.ZodPage),
   },
 
   { path: '**', redirectTo: 'template-driven' },

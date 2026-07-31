@@ -16,8 +16,9 @@ import { VisibilityPage } from './14-signal-visibility/visibility-page';
 import { AsyncPage } from './15-signal-async/async-page';
 import { SubmitPage } from './16-signal-submit/submit-page';
 import { SchemasPage } from './17-signal-schemas/schemas-page';
-import { ZodPage } from './19-signal-zod/zod-page';
-import { I18nPage } from './18-signal-i18n/i18n-page';
+import { ErrorsPage } from './18-signal-errors/errors-page';
+import { I18nPage } from './19-signal-i18n/i18n-page';
+import { ZodPage } from './20-signal-zod/zod-page';
 
 /**
  * Smoke coverage: every page must actually mount and render.
@@ -38,8 +39,9 @@ const PAGES: ReadonlyArray<[string, Type<unknown>]> = [
   ['signal · async', AsyncPage],
   ['signal · submit', SubmitPage],
   ['signal · schemas', SchemasPage],
-  ['signal · zod', ZodPage],
+  ['signal · errors (S9)', ErrorsPage],
   ['signal · i18n (S10)', I18nPage],
+  ['signal · zod (bonus)', ZodPage],
 ];
 
 describe('demo pages', () => {

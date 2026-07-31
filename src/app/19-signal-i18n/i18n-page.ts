@@ -1,23 +1,24 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { FormField, form, minLength, required, validate } from '@angular/forms/signals';
 
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
 import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
-import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { Channel, contentLimitFor, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { CodePanel } from '../shared/code-panel';
-import { FieldError, FormMessages } from '../shared/i18n';
+import { FieldErrorDisplay } from '../shared/field-error';
+import { FormMessages } from '../shared/i18n';
 import { emptyDraft } from '../shared/post-draft';
 import { I18N_BRIDGE, I18N_PARAMS, I18N_RESOLVER, I18N_SCHEMA } from './i18n-snippets';
 
 const MIN_CONTENT_LENGTH = 10;
 
 /**
- * S9 — translated validation messages.
+ * S10 — translated validation messages.
  *
  * The rule: validators declare *what failed* (`kind` plus params); the view
  * decides *what to say*. Hardcoding copy in a schema makes it untranslatable,
@@ -27,17 +28,18 @@ const MIN_CONTENT_LENGTH = 10;
   selector: 'app-signal-i18n-page',
   imports: [
     FormField,
+    RouterLink,
     TranslatePipe,
     TextareaDirective,
     FormFieldComponent,
-    FormMessageComponent,
     ButtonComponent,
     ChannelPicker,
     CodePanel,
+    FieldErrorDisplay,
   ],
   template: `
     <section class="demo">
-      <span class="demo__badge demo__badge--signal">S9 · signal forms</span>
+      <span class="demo__badge demo__badge--signal">S10 · signal forms</span>
       <h2>Translated messages</h2>
 
       <p class="demo__intro">
@@ -45,6 +47,13 @@ const MIN_CONTENT_LENGTH = 10;
         <code>kind</code>, the view maps it to <code>forms.errors.&lt;kind&gt;</code>, and
         <code>&#64;ngx-translate</code> resolves it — the same setup as the platform.
         <strong>Switch the language with errors on screen</strong> and watch them re-translate.
+      </p>
+
+      <p class="demo__intro">
+        This page has no message plumbing of its own: it reuses
+        <code>&lt;app-field-error&gt;</code> from
+        <a routerLink="/signal/errors">S9</a>, which is where the
+        <code>kind</code> → key fallback lives. Adding a language changes one table.
       </p>
 
       <div class="field">
@@ -69,17 +78,13 @@ const MIN_CONTENT_LENGTH = 10;
         <div class="field">
           <label>{{ 'composer.channels.label' | translate }}</label>
           <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
-          @if (composer.channels().touched() && channelsError(); as message) {
-            <ap-form-message messageType="error" [message]="message" />
-          }
+          <app-field-error [field]="composer.channels" />
         </div>
 
         <ap-form-field>
           <label for="s10-content">{{ 'composer.content.label' | translate }}</label>
           <textarea id="s10-content" apTextarea [formField]="composer.content"></textarea>
-          @if (composer.content().touched() && contentError(); as message) {
-            <ap-form-message messageType="error" [message]="message" />
-          }
+          <app-field-error [field]="composer.content" ngProjectAs="ap-form-message" />
         </ap-form-field>
 
         <div class="actions">
@@ -91,7 +96,10 @@ const MIN_CONTENT_LENGTH = 10;
 
       <app-code label="The schema — no copy at all" [code]="schemaSnippet" />
       <app-code label="kind → translation key" [code]="resolverSnippet" />
-      <app-code label="Params come from the validator's own constraints" [code]="paramsSnippet" />
+      <app-code
+        label="Params come from the validator's own constraints (shared/field-error.ts)"
+        [code]="paramsSnippet"
+      />
       <app-code label="The catch: instant() is not reactive" [code]="bridgeSnippet" />
 
       <p class="demo__pain">
@@ -139,24 +147,6 @@ export class I18nPage {
     validate(path.channels, ({ value }) =>
       value().length === 0 ? { kind: 'noChannels' } : null,
     );
-  });
-
-  protected readonly contentError = computed(() => {
-    const state = this.composer.content();
-    const error = state.errors()[0];
-    if (!error) return null;
-
-    // Interpolation params come from the validator itself: minLength() is a
-    // constraint signal, so changing the rule changes the copy automatically.
-    return this.messages.message({
-      ...error,
-      minLength: state.minLength?.(),
-    } as unknown as FieldError);
-  });
-
-  protected readonly channelsError = computed(() => {
-    const error = this.composer.channels().errors()[0];
-    return error ? this.messages.message(error as unknown as FieldError) : null;
   });
 
   protected toggle(channel: Channel): void {

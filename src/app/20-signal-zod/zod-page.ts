@@ -70,6 +70,16 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
         channel selection changes the limit.
       </p>
 
+      <p class="demo__intro">
+        <strong>How <code>draftSchema</code> reaches the form:</strong>
+        <code>z.infer</code> types the model signal → the model feeds
+        <code>limit</code> → <code>limit</code> rebuilds the schema in a
+        <code>computed</code> → the form reads it. The last hop is reactive because
+        <code>validateStandardSchema</code>'s second argument may be a <em>function</em> returning
+        the schema, not just a schema: pass <code>draftSchema(280)</code> for a fixed schema, pass
+        <code>() =&gt; this.schema()</code> when it depends on the model.
+      </p>
+
       <form novalidate>
         <div class="field">
           <label>Channels</label>
@@ -108,7 +118,10 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
       </form>
 
       <app-code label="The Zod schema" [code]="schemaSnippet" />
-      <app-code label="Wiring it in" [code]="wiringSnippet" />
+      <app-code
+        label="…and the whole chain into the form: z.infer → model → limit → schema → form"
+        [code]="wiringSnippet"
+      />
 
       <p class="demo__pain demo__win">
         <strong>One schema, three jobs.</strong> <code>z.infer</code> gives the model type,
@@ -147,6 +160,7 @@ export class ZodPage {
   private readonly schema = computed(() => draftSchema(this.limit()));
 
   protected readonly composer = form(this.model, (path) => {
+    // A LogicFn, not a schema: re-read on every run, so a new schema takes effect.
     validateStandardSchema(path, () => this.schema());
 
     // Behaviour is still Angular's job: Zod has no concept of a disabled field.

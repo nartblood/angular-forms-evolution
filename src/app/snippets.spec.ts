@@ -50,13 +50,20 @@ import {
   SIGNAL_SCHEMAS_SUB,
   SIGNAL_SCHEMAS_USAGE,
 } from './17-signal-schemas/schemas-snippets';
-import { ZOD_SCHEMA, ZOD_WIRING } from './19-signal-zod/zod-snippets';
+import {
+  ERRORS_ATTEMPTED,
+  ERRORS_BEFORE,
+  ERRORS_POLICY,
+  ERRORS_SUMMARY,
+  ERRORS_TEMPLATE,
+} from './18-signal-errors/errors-snippets';
 import {
   I18N_BRIDGE,
   I18N_PARAMS,
   I18N_RESOLVER,
   I18N_SCHEMA,
-} from './18-signal-i18n/i18n-snippets';
+} from './19-signal-i18n/i18n-snippets';
+import { ZOD_SCHEMA, ZOD_WIRING } from './20-signal-zod/zod-snippets';
 
 /**
  * Every snippet rendered on screen is a *copy* of the code it claims to show, so
@@ -111,13 +118,20 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
   ['S8 whole schema', SIGNAL_SCHEMAS_COMPOSER, '17-signal-schemas/composer-schema.ts'],
   ['S8 reuse', SIGNAL_SCHEMAS_REUSE, '17-signal-schemas/schemas-page.ts'],
 
-  ['Bonus zod schema', ZOD_SCHEMA, '19-signal-zod/zod-page.ts'],
-  ['Bonus zod wiring', ZOD_WIRING, '19-signal-zod/zod-page.ts'],
+  ['S9 template', ERRORS_TEMPLATE, '18-signal-errors/errors-page.ts'],
+  // Guarded against the *previous* step, so the "before" panel can't become a strawman.
+  ['S9 before', ERRORS_BEFORE, '16-signal-submit/submit-page.ts'],
+  ['S9 policy', ERRORS_POLICY, 'shared/field-error.ts'],
+  ['S9 attempted', ERRORS_ATTEMPTED, '18-signal-errors/errors-page.ts'],
+  ['S9 summary', ERRORS_SUMMARY, '18-signal-errors/errors-page.ts'],
 
-  ['S9 i18n schema', I18N_SCHEMA, '18-signal-i18n/i18n-page.ts'],
-  ['S9 i18n params', I18N_PARAMS, '18-signal-i18n/i18n-page.ts'],
-  ['S9 i18n resolver', I18N_RESOLVER, 'shared/i18n.ts'],
-  ['S9 i18n bridge', I18N_BRIDGE, 'shared/i18n.ts'],
+  ['S10 i18n schema', I18N_SCHEMA, '19-signal-i18n/i18n-page.ts'],
+  ['S10 i18n params', I18N_PARAMS, 'shared/field-error.ts'],
+  ['S10 i18n resolver', I18N_RESOLVER, 'shared/i18n.ts'],
+  ['S10 i18n bridge', I18N_BRIDGE, 'shared/i18n.ts'],
+
+  ['Bonus zod schema', ZOD_SCHEMA, '20-signal-zod/zod-page.ts'],
+  ['Bonus zod wiring', ZOD_WIRING, '20-signal-zod/zod-page.ts'],
 ];
 
 describe('on-screen snippets match their source', () => {

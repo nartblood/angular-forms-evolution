@@ -21,7 +21,29 @@ function draftSchema(limit: number) {
 /** The model type comes from the schema — not hand-written alongside it. */
 type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;`;
 
-export const ZOD_WIRING = `protected readonly composer = form(this.model, (path) => {
+/**
+ * The chain the previous panel leaves implicit: the inferred type gives the model
+ * signal, the model gives the limit, the limit rebuilds the Zod schema, and the
+ * schema reaches the form. `validateStandardSchema` takes either a schema *or a
+ * function returning one* — the function form is what makes the last hop
+ * reactive, so nothing revalidates by hand.
+ */
+export const ZOD_WIRING = `protected readonly model = signal<ZodDraft>({
+  channels: [],
+  content: '',
+  publishMode: 'now',
+  scheduledAt: '',
+  media: [],
+  firstComment: '',
+});
+
+protected readonly limit = computed(() => contentLimitFor(this.model().channels));
+
+/** Rebuilt whenever the limit changes — validation follows automatically. */
+private readonly schema = computed(() => draftSchema(this.limit()));
+
+protected readonly composer = form(this.model, (path) => {
+  // A LogicFn, not a schema: re-read on every run, so a new schema takes effect.
   validateStandardSchema(path, () => this.schema());
 
   // Behaviour is still Angular's job: Zod has no concept of a disabled field.

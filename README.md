@@ -33,6 +33,7 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | `/signal/async` | | `validateHttp` — no debounce, cache or `first()` to hand-roll |
 | `/signal/submit` | | `[formRoot]`, `submitting()`, field-targeted server errors |
 | `/signal/schemas` | | every rule extracted to `composer-schema.ts`, reused and unit-tested |
+| `/signal/errors` | | the display policy in one component, plus `errorSummary()` |
 | `/signal/i18n` | | translated messages: validators emit a `kind`, the view supplies the copy |
 | `/signal/zod` | | **bonus** — the same rules as Zod via `validateStandardSchema` |
 
@@ -86,7 +87,7 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
 
 ## Tests
 
-`npm test` — 68 tests, in four kinds:
+`npm test` — 88 tests, in four kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.
@@ -100,6 +101,10 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
   `i18n-page.spec.ts`): `ap-checkbox` emits `(change)`, `ap-button` is `type="button"`,
   `ap-radio` writes back through `[formField]`, and error messages re-translate on language
   switch. Each pins down something that would otherwise fail silently on stage.
+- **Error display** (`shared/field-error.spec.ts`, `errors-page.spec.ts`): errors stay hidden
+  until the field is touched, `markAsTouched()` on the root reveals every field at once (what
+  `submit()` does), `reset()` hides them again, and `errorSummary()` names the field each error
+  came from.
 
 ## Caveats
 
