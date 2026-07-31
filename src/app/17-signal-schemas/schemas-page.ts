@@ -13,6 +13,8 @@ import { Channel, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { emptyDraft, emptyMediaItem, existingDraft } from '../shared/post-draft';
 import { composerSchema } from './composer-schema';
+import { CodePanel } from '../shared/code-panel';
+import { SIGNAL_SCHEMAS_DEFINITION, SIGNAL_SCHEMAS_LOAD, SIGNAL_SCHEMAS_USAGE } from './schemas-snippets';
 
 /**
  * Step 8 — every rule extracted, and the whole form is one line.
@@ -33,6 +35,7 @@ import { composerSchema } from './composer-schema';
     RadioComponent,
     ChannelPicker,
     JsonPipe,
+    CodePanel,
   ],
   template: `
     <section class="demo">
@@ -145,6 +148,10 @@ import { composerSchema } from './composer-schema';
         </div>
       </form>
 
+      <app-code label="composer-schema.ts" [code]="definitionSnippet" />
+      <app-code label="…and the whole form" [code]="usageSnippet" />
+      <app-code label="Loading is one assignment" [code]="loadSnippet" />
+
       <p class="demo__pain demo__win">
         <strong>Loading is one assignment.</strong> <code>model.set(draft)</code> — no event
         suppression, no array rebuild, no rule replay. Every conditional rule is derived, so the
@@ -157,6 +164,10 @@ import { composerSchema } from './composer-schema';
   `,
 })
 export class SchemasPage {
+  protected readonly definitionSnippet = SIGNAL_SCHEMAS_DEFINITION;
+  protected readonly usageSnippet = SIGNAL_SCHEMAS_USAGE;
+  protected readonly loadSnippet = SIGNAL_SCHEMAS_LOAD;
+
   protected readonly model = signal(emptyDraft());
 
   /** Every rule, applied. */

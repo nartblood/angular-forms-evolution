@@ -15,6 +15,8 @@ import {
 } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { emptyDraft, emptyMediaItem } from '../shared/post-draft';
+import { CodePanel } from '../shared/code-panel';
+import { SIGNAL_ARRAYS_LIST_RULE, SIGNAL_ARRAYS_MUTATION, SIGNAL_ARRAYS_PER_ITEM } from './arrays-snippets';
 
 /**
  * Step 4 — arrays.
@@ -33,6 +35,7 @@ import { emptyDraft, emptyMediaItem } from '../shared/post-draft';
     ButtonComponent,
     ChannelPicker,
     JsonPipe,
+    CodePanel,
   ],
   template: `
     <section class="demo">
@@ -91,6 +94,10 @@ import { emptyDraft, emptyMediaItem } from '../shared/post-draft';
         </div>
       </form>
 
+      <app-code label="Rules for every item" [code]="perItemSnippet" />
+      <app-code label="Rules about the list" [code]="listSnippet" />
+      <app-code label="Add and remove" [code]="mutationSnippet" />
+
       <p class="demo__pain demo__win">
         <strong>Adding an item is <code>model.update()</code>.</strong> The form re-derives, and
         every new item already has its rules from <code>applyEach</code>. Compare with the reactive
@@ -103,6 +110,10 @@ import { emptyDraft, emptyMediaItem } from '../shared/post-draft';
   `,
 })
 export class ArraysPage {
+  protected readonly perItemSnippet = SIGNAL_ARRAYS_PER_ITEM;
+  protected readonly listSnippet = SIGNAL_ARRAYS_LIST_RULE;
+  protected readonly mutationSnippet = SIGNAL_ARRAYS_MUTATION;
+
   protected readonly model = signal(emptyDraft());
 
   protected readonly composer = form(this.model, (path) => {

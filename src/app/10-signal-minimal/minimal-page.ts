@@ -10,6 +10,8 @@ import { ButtonComponent } from '@agorapulse/ui-components/button';
 import { Channel, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { emptyDraft } from '../shared/post-draft';
+import { CodePanel } from '../shared/code-panel';
+import { SIGNAL_MINIMAL_FORM, SIGNAL_MINIMAL_WRITE } from './minimal-snippets';
 
 /**
  * Step 1 — the model *is* the form.
@@ -27,6 +29,7 @@ import { emptyDraft } from '../shared/post-draft';
     ButtonComponent,
     ChannelPicker,
     JsonPipe,
+    CodePanel,
   ],
   template: `
     <section class="demo">
@@ -65,6 +68,9 @@ import { emptyDraft } from '../shared/post-draft';
         </div>
       </form>
 
+      <app-code label="The form" [code]="formSnippet" />
+      <app-code label="Writing to it" [code]="writeSnippet" />
+
       <p class="demo__pain demo__win">
         <strong>Already different.</strong> Channels is plain state toggled by an
         <code>ap-checkbox</code> — no control, no <code>ControlValueAccessor</code> — and it still
@@ -76,6 +82,9 @@ import { emptyDraft } from '../shared/post-draft';
   `,
 })
 export class MinimalPage {
+  protected readonly formSnippet = SIGNAL_MINIMAL_FORM;
+  protected readonly writeSnippet = SIGNAL_MINIMAL_WRITE;
+
   protected readonly model = signal(emptyDraft());
 
   protected readonly composer = form(this.model, (path) => {

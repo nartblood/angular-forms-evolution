@@ -38,6 +38,14 @@ import {
 import { PostDraft, PublishMode, existingDraft } from '../shared/post-draft';
 import { DUPLICATE_CHECK_URL, DuplicateCheckResponse } from '../shared/fake-backend';
 import { PublishApi } from '../shared/publish-api';
+import { CodePanel } from '../shared/code-panel';
+import {
+  REACTIVE_ASYNC_VALIDATOR,
+  REACTIVE_CROSS_FIELD,
+  REACTIVE_LOADING,
+  REACTIVE_SERVER_ERROR,
+  REACTIVE_SETTLED,
+} from './reactive-snippets';
 
 // ---------------------------------------------------------------------------
 // PAIN 1: the model exists twice. `PostDraft` describes the domain; this type
@@ -98,10 +106,17 @@ const mediaWithinChannelLimit: ValidatorFn = (group): ValidationErrors | null =>
     RadioComponent,
     ChannelPicker,
     JsonPipe,
+    CodePanel,
   ],
   templateUrl: './reactive-page.html',
 })
 export class ReactivePage {
+  protected readonly crossFieldSnippet = REACTIVE_CROSS_FIELD;
+  protected readonly asyncSnippet = REACTIVE_ASYNC_VALIDATOR;
+  protected readonly loadingSnippet = REACTIVE_LOADING;
+  protected readonly settledSnippet = REACTIVE_SETTLED;
+  protected readonly serverErrorSnippet = REACTIVE_SERVER_ERROR;
+
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);

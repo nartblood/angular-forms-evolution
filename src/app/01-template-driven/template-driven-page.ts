@@ -12,6 +12,12 @@ import { RadioComponent } from '@agorapulse/ui-components/radio';
 import { Channel, contentLimitFor, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { PostDraft, emptyDraft } from '../shared/post-draft';
+import { CodePanel } from '../shared/code-panel';
+import {
+  TEMPLATE_DRIVEN_GAP,
+  TEMPLATE_DRIVEN_MARKUP,
+  TEMPLATE_DRIVEN_MODEL,
+} from './template-driven-snippets';
 
 /**
  * Template-driven: the five-minute form.
@@ -32,6 +38,7 @@ import { PostDraft, emptyDraft } from '../shared/post-draft';
     RadioComponent,
     ChannelPicker,
     JsonPipe,
+    CodePanel,
   ],
   template: `
     <section class="demo">
@@ -128,6 +135,10 @@ import { PostDraft, emptyDraft } from '../shared/post-draft';
         </div>
       </form>
 
+      <app-code label="The markup does the work" lang="html" [code]="markupSnippet" />
+      <app-code label="…over a plain object" [code]="modelSnippet" />
+      <app-code label="But the channel rule lives outside the form" [code]="gapSnippet" />
+
       <p class="demo__pain">
         <strong>Where it stops.</strong>
         <br />1. Channels has no single control, so its validity lives outside the form:
@@ -145,6 +156,10 @@ import { PostDraft, emptyDraft } from '../shared/post-draft';
   `,
 })
 export class TemplateDrivenPage {
+  protected readonly markupSnippet = TEMPLATE_DRIVEN_MARKUP;
+  protected readonly modelSnippet = TEMPLATE_DRIVEN_MODEL;
+  protected readonly gapSnippet = TEMPLATE_DRIVEN_GAP;
+
   /** ngModel mutates this in place. The model *is* the form. */
   protected draft: PostDraft = emptyDraft();
   protected channelsTouched = false;

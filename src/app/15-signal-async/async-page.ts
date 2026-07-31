@@ -9,6 +9,8 @@ import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { ALREADY_PUBLISHED, DUPLICATE_CHECK_URL } from '../shared/fake-backend';
 import { emptyDraft } from '../shared/post-draft';
+import { CodePanel } from '../shared/code-panel';
+import { SIGNAL_ASYNC_RULE } from './async-snippets';
 
 /**
  * Step 6 — async validation.
@@ -27,6 +29,7 @@ import { emptyDraft } from '../shared/post-draft';
     FormMessageComponent,
     ButtonComponent,
     JsonPipe,
+    CodePanel,
   ],
   template: `
     <section class="demo">
@@ -61,6 +64,8 @@ import { emptyDraft } from '../shared/post-draft';
         </div>
       </form>
 
+      <app-code label="The whole async validator" [code]="ruleSnippet" />
+
       <p class="demo__pain demo__win">
         <strong>No debounce, no cache, no <code>first()</code>.</strong> Returning
         <code>undefined</code> from <code>request</code> skips the call entirely, so short or empty
@@ -75,6 +80,8 @@ errors: {{ composer.content().errors() | json }}</pre>
   `,
 })
 export class AsyncPage {
+  protected readonly ruleSnippet = SIGNAL_ASYNC_RULE;
+
   protected readonly triggers = ALREADY_PUBLISHED.join('", "');
 
   protected readonly model = signal(emptyDraft());

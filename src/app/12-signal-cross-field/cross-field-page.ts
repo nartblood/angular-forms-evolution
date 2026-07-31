@@ -10,6 +10,8 @@ import { ButtonComponent } from '@agorapulse/ui-components/button';
 import { Channel, contentLimitFor, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { emptyDraft } from '../shared/post-draft';
+import { CodePanel } from '../shared/code-panel';
+import { SIGNAL_CROSS_FIELD_RULE } from './cross-field-snippets';
 
 /**
  * Step 3 — cross-field validation that lands on the right field.
@@ -29,6 +31,7 @@ import { emptyDraft } from '../shared/post-draft';
     ButtonComponent,
     ChannelPicker,
     JsonPipe,
+    CodePanel,
   ],
   template: `
     <section class="demo">
@@ -61,6 +64,8 @@ import { emptyDraft } from '../shared/post-draft';
         </div>
       </form>
 
+      <app-code label="The rule — note valueOf() reading a sibling" [code]="ruleSnippet" />
+
       <p class="demo__pain demo__win">
         <strong>The error is on <code>content</code>, not on the root.</strong> That's the whole
         difference: <code>valueOf(path.channels)</code> gives the rule access to a sibling without
@@ -74,6 +79,8 @@ errors: {{ composer.content().errors() | json }}</pre>
   `,
 })
 export class CrossFieldPage {
+  protected readonly ruleSnippet = SIGNAL_CROSS_FIELD_RULE;
+
   protected readonly model = signal(emptyDraft());
 
   /** Plain derived state — the same helper the other two implementations use. */

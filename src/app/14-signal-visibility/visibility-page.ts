@@ -12,6 +12,8 @@ import { RadioComponent } from '@agorapulse/ui-components/radio';
 import { Channel, supportsFirstComment, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { emptyDraft } from '../shared/post-draft';
+import { CodePanel } from '../shared/code-panel';
+import { SIGNAL_VISIBILITY_RULES, SIGNAL_VISIBILITY_TEMPLATE } from './visibility-snippets';
 
 /**
  * Step 5 — hidden, disabled, readonly.
@@ -32,6 +34,7 @@ import { emptyDraft } from '../shared/post-draft';
     RadioComponent,
     ChannelPicker,
     JsonPipe,
+    CodePanel,
   ],
   template: `
     <section class="demo">
@@ -96,6 +99,9 @@ import { emptyDraft } from '../shared/post-draft';
         </div>
       </form>
 
+      <app-code label="The rules" [code]="rulesSnippet" />
+      <app-code label="Asking the field in the template" lang="html" [code]="templateSnippet" />
+
       <p class="demo__pain demo__win">
         <strong>The model keeps the value.</strong> Hidden and disabled fields are excluded from
         validation but not from your state — so there is no <code>.value</code> vs
@@ -110,6 +116,9 @@ scheduledAt disabled: {{ composer.scheduledAt().disabled() }}
   `,
 })
 export class VisibilityPage {
+  protected readonly rulesSnippet = SIGNAL_VISIBILITY_RULES;
+  protected readonly templateSnippet = SIGNAL_VISIBILITY_TEMPLATE;
+
   protected readonly model = signal(emptyDraft());
 
   protected readonly composer = form(this.model, (path) => {

@@ -11,6 +11,8 @@ import { Channel, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { emptyDraft } from '../shared/post-draft';
 import { PublishApi } from '../shared/publish-api';
+import { CodePanel } from '../shared/code-panel';
+import { SIGNAL_SUBMIT_ACTION, SIGNAL_SUBMIT_BUTTON, SIGNAL_SUBMIT_TEMPLATE } from './submit-snippets';
 
 /**
  * Step 7 — submission.
@@ -34,6 +36,7 @@ import { PublishApi } from '../shared/publish-api';
     ButtonComponent,
     ChannelPicker,
     JsonPipe,
+    CodePanel,
   ],
   template: `
     <section class="demo">
@@ -81,6 +84,10 @@ import { PublishApi } from '../shared/publish-api';
         </div>
       </form>
 
+      <app-code label="The submit action" [code]="actionSnippet" />
+      <app-code label="formRoot does the rest" lang="html" [code]="templateSnippet" />
+      <app-code label="ap-button needs requestSubmit()" lang="html" [code]="buttonSnippet" />
+
       <p class="demo__pain demo__win">
         <strong>Three things you don't write.</strong> Submitting an empty form shows every error at
         once — <code>[formRoot]</code> marked them touched. The in-flight state is
@@ -96,6 +103,10 @@ channel errors: {{ composer.channels().errors() | json }}</pre>
   `,
 })
 export class SubmitPage {
+  protected readonly actionSnippet = SIGNAL_SUBMIT_ACTION;
+  protected readonly templateSnippet = SIGNAL_SUBMIT_TEMPLATE;
+  protected readonly buttonSnippet = SIGNAL_SUBMIT_BUTTON;
+
   private readonly api = inject(PublishApi);
 
   protected published: string | null = null;

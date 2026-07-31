@@ -11,6 +11,8 @@ import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { Channel, contentLimitFor, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
+import { CodePanel } from '../shared/code-panel';
+import { ZOD_SCHEMA, ZOD_WIRING } from './zod-snippets';
 
 /**
  * Bonus — the same rules as a Zod schema.
@@ -57,6 +59,7 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
     ButtonComponent,
     ChannelPicker,
     JsonPipe,
+    CodePanel,
   ],
   template: `
     <section class="demo">
@@ -104,6 +107,9 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
         </div>
       </form>
 
+      <app-code label="The Zod schema" [code]="schemaSnippet" />
+      <app-code label="Wiring it in" [code]="wiringSnippet" />
+
       <p class="demo__pain demo__win">
         <strong>One schema, three jobs.</strong> <code>z.infer</code> gives the model type,
         <code>validateStandardSchema</code> gives the form rules, and
@@ -123,6 +129,9 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
   `,
 })
 export class ZodPage {
+  protected readonly schemaSnippet = ZOD_SCHEMA;
+  protected readonly wiringSnippet = ZOD_WIRING;
+
   protected readonly model = signal<ZodDraft>({
     channels: [],
     content: '',
