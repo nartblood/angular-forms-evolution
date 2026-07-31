@@ -1,4 +1,11 @@
-export const SIGNAL_MINIMAL_FORM = `protected readonly model = signal(emptyDraft());
+export const SIGNAL_MINIMAL_FORM = `protected readonly model = signal<PostDraft>({
+  channels: [],
+  content: '',
+  publishMode: 'now',
+  scheduledAt: '',
+  media: [],
+  firstComment: '',
+});
 
 protected readonly composer = form(this.model, (path) => {
   required(path.content, { message: 'Content is required' });

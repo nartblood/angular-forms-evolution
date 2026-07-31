@@ -9,7 +9,7 @@ import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { Channel, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
-import { emptyDraft } from '../shared/post-draft';
+import { PostDraft } from '../shared/post-draft';
 import { CodePanel } from '../shared/code-panel';
 import { SIGNAL_MINIMAL_FORM, SIGNAL_MINIMAL_WRITE } from './minimal-snippets';
 
@@ -85,7 +85,20 @@ export class MinimalPage {
   protected readonly formSnippet = SIGNAL_MINIMAL_FORM;
   protected readonly writeSnippet = SIGNAL_MINIMAL_WRITE;
 
-  protected readonly model = signal(emptyDraft());
+  /**
+   * Spelled out rather than `signal(emptyDraft())`: on the page whose argument
+   * is "the model *is* the form", the model should be visible. The `PostDraft`
+   * annotation means a missing or renamed field is a compile error, so this
+   * copy can't drift from the interface.
+   */
+  protected readonly model = signal<PostDraft>({
+    channels: [],
+    content: '',
+    publishMode: 'now',
+    scheduledAt: '',
+    media: [],
+    firstComment: '',
+  });
 
   protected readonly composer = form(this.model, (path) => {
     required(path.content, { message: 'Content is required' });
