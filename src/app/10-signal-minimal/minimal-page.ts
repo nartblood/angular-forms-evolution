@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { JsonPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { FormField, form, required, validate } from '@angular/forms/signals';
 
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
@@ -11,7 +12,11 @@ import { Channel, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { PostDraft } from '../shared/post-draft';
 import { CodePanel } from '../shared/code-panel';
-import { SIGNAL_MINIMAL_FORM, SIGNAL_MINIMAL_WRITE } from './minimal-snippets';
+import {
+  SIGNAL_MINIMAL_FORM,
+  SIGNAL_MINIMAL_TEMPLATE,
+  SIGNAL_MINIMAL_WRITE,
+} from './minimal-snippets';
 
 /**
  * Step 1 — the model *is* the form.
@@ -23,6 +28,7 @@ import { SIGNAL_MINIMAL_FORM, SIGNAL_MINIMAL_WRITE } from './minimal-snippets';
   selector: 'app-signal-minimal-page',
   imports: [
     FormField,
+    RouterLink,
     TextareaDirective,
     FormFieldComponent,
     FormMessageComponent,
@@ -69,7 +75,20 @@ import { SIGNAL_MINIMAL_FORM, SIGNAL_MINIMAL_WRITE } from './minimal-snippets';
       </form>
 
       <app-code label="The form" [code]="formSnippet" />
+      <app-code label="Binding it in the template" lang="html" [code]="templateSnippet" />
       <app-code label="Writing to it" [code]="writeSnippet" />
+
+      <p class="demo__pain demo__win">
+        <strong>One binding, and it's type-checked.</strong>
+        <code>[formField]="composer.content"</code> passes the field itself — not a string name — so
+        <code>composer.contnet</code> fails to compile where <code>formControlName="contnet"</code>
+        fails at runtime. It comes from the <code>FormField</code> directive in
+        <code>&#64;angular/forms/signals</code>, which you add to the component's
+        <code>imports</code>; it binds to a native <code>&lt;input&gt;</code>/<code>&lt;textarea&gt;</code>
+        (the <code>apInput</code> / <code>apTextarea</code> directives stay exactly as they are) and
+        to a <code>ControlValueAccessor</code> component such as <code>ap-radio</code> — see
+        <a routerLink="/signal/conditional">S2</a>.
+      </p>
 
       <p class="demo__pain demo__win">
         <strong>Already different.</strong> Channels is plain state toggled by an
@@ -83,6 +102,7 @@ import { SIGNAL_MINIMAL_FORM, SIGNAL_MINIMAL_WRITE } from './minimal-snippets';
 })
 export class MinimalPage {
   protected readonly formSnippet = SIGNAL_MINIMAL_FORM;
+  protected readonly templateSnippet = SIGNAL_MINIMAL_TEMPLATE;
   protected readonly writeSnippet = SIGNAL_MINIMAL_WRITE;
 
   /**

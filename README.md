@@ -87,7 +87,7 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
 
 ## Tests
 
-`npm test` — 88 tests, in four kinds:
+`npm test` — 90 tests, in four kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.

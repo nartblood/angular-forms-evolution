@@ -21,10 +21,15 @@ import {
   REACTIVE_SERVER_ERROR,
   REACTIVE_SETTLED,
 } from './09-reactive-everything/reactive-snippets';
-import { SIGNAL_MINIMAL_FORM, SIGNAL_MINIMAL_WRITE } from './10-signal-minimal/minimal-snippets';
+import {
+  SIGNAL_MINIMAL_FORM,
+  SIGNAL_MINIMAL_TEMPLATE,
+  SIGNAL_MINIMAL_WRITE,
+} from './10-signal-minimal/minimal-snippets';
 import {
   SIGNAL_CONDITIONAL_MODEL,
   SIGNAL_CONDITIONAL_RULE,
+  SIGNAL_CONDITIONAL_TEMPLATE,
 } from './11-signal-conditional/conditional-snippets';
 import { SIGNAL_CROSS_FIELD_RULE } from './12-signal-cross-field/cross-field-snippets';
 import {
@@ -91,10 +96,12 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
   ['R9 cross-field', REACTIVE_CROSS_FIELD, '09-reactive-everything/reactive-page.ts'],
 
   ['S1 form', SIGNAL_MINIMAL_FORM, '10-signal-minimal/minimal-page.ts'],
+  ['S1 template', SIGNAL_MINIMAL_TEMPLATE, '10-signal-minimal/minimal-page.ts'],
   ['S1 write', SIGNAL_MINIMAL_WRITE, '10-signal-minimal/minimal-page.ts'],
 
   ['S2 rule', SIGNAL_CONDITIONAL_RULE, '11-signal-conditional/conditional-page.ts'],
   ['S2 model', SIGNAL_CONDITIONAL_MODEL, '11-signal-conditional/conditional-page.ts'],
+  ['S2 template', SIGNAL_CONDITIONAL_TEMPLATE, '11-signal-conditional/conditional-page.ts'],
 
   ['S3 rule', SIGNAL_CROSS_FIELD_RULE, '12-signal-cross-field/cross-field-page.ts'],
 

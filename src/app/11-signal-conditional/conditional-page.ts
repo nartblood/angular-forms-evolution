@@ -11,7 +11,11 @@ import { RadioComponent } from '@agorapulse/ui-components/radio';
 
 import { CodePanel } from '../shared/code-panel';
 import { emptyDraft } from '../shared/post-draft';
-import { SIGNAL_CONDITIONAL_MODEL, SIGNAL_CONDITIONAL_RULE } from './conditional-snippets';
+import {
+  SIGNAL_CONDITIONAL_MODEL,
+  SIGNAL_CONDITIONAL_RULE,
+  SIGNAL_CONDITIONAL_TEMPLATE,
+} from './conditional-snippets';
 
 /**
  * Step 2 — conditional rules with `when`.
@@ -93,6 +97,11 @@ import { SIGNAL_CONDITIONAL_MODEL, SIGNAL_CONDITIONAL_RULE } from './conditional
 
       <app-code label="The whole rule" [code]="ruleSnippet" />
       <app-code label="…over this state" [code]="modelSnippet" />
+      <app-code
+        label="Bound the same way, on a component this time"
+        lang="html"
+        [code]="templateSnippet"
+      />
 
       <table class="demo__scoreboard">
         <thead>
@@ -143,6 +152,7 @@ valid: {{ composer().valid() }}</pre>
 export class ConditionalPage {
   protected readonly ruleSnippet = SIGNAL_CONDITIONAL_RULE;
   protected readonly modelSnippet = SIGNAL_CONDITIONAL_MODEL;
+  protected readonly templateSnippet = SIGNAL_CONDITIONAL_TEMPLATE;
 
   protected readonly model = signal(emptyDraft());
 

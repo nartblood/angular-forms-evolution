@@ -15,6 +15,35 @@ protected readonly composer = form(this.model, (path) => {
   );
 });`;
 
+/**
+ * From `minimal-page.ts`. Two field kinds side by side, which is the whole point:
+ * `content` is *bound* with `[formField]` (the directive supplies the value, the
+ * writes and the blur that sets `touched`), while `channels` is plain state the
+ * page writes itself — and still validates. The `@if` noise around the messages
+ * is what S9 collapses into one component.
+ */
+export const SIGNAL_MINIMAL_TEMPLATE = `<div class="field">
+  <label>Channels</label>
+  <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
+  @if (composer.channels().touched() && composer.channels().invalid()) {
+    <ap-form-message
+      messageType="error"
+      [message]="composer.channels().errors()[0].message ?? 'Invalid'"
+    />
+  }
+</div>
+
+<ap-form-field>
+  <label for="s1-content">Content</label>
+  <textarea id="s1-content" apTextarea [formField]="composer.content"></textarea>
+  @if (composer.content().touched() && composer.content().invalid()) {
+    <ap-form-message
+      messageType="error"
+      [message]="composer.content().errors()[0].message ?? 'Invalid'"
+    />
+  }
+</ap-form-field>`;
+
 export const SIGNAL_MINIMAL_WRITE = `protected toggle(channel: Channel): void {
   // Writing to the model is writing to the form. One direction, one mechanism.
   this.model.update((draft) => ({

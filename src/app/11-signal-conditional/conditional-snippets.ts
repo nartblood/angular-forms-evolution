@@ -18,3 +18,36 @@ validate(path.scheduledAt, ({ value, valueOf }) => {
 });`;
 
 export const SIGNAL_CONDITIONAL_MODEL = `protected readonly model = signal(emptyDraft());`;
+
+/**
+ * The binding half of the story, from `conditional-page.ts`. Same
+ * `[formField]` as on a native `<textarea>`, this time on a
+ * `ControlValueAccessor` *component* — and the two radios share one field, so
+ * "which one is selected" is the model value, not view state.
+ */
+export const SIGNAL_CONDITIONAL_TEMPLATE = `<div class="field">
+  <label>When</label>
+  <!-- ap-radio is a ControlValueAccessor component, bound with [formField] -->
+  <ap-radio radioId="s2-now" value="now" [formField]="composer.publishMode">Now</ap-radio>
+  <ap-radio radioId="s2-scheduled" value="scheduled" [formField]="composer.publishMode">
+    Schedule
+  </ap-radio>
+</div>
+
+@if (model().publishMode === 'scheduled') {
+  <ap-form-field>
+    <label for="s2-scheduledAt">Publish at</label>
+    <input
+      id="s2-scheduledAt"
+      type="datetime-local"
+      apInput
+      [formField]="composer.scheduledAt"
+    />
+    @if (composer.scheduledAt().touched() && composer.scheduledAt().invalid()) {
+      <ap-form-message
+        messageType="error"
+        [message]="composer.scheduledAt().errors()[0].message ?? 'Invalid'"
+      />
+    }
+  </ap-form-field>
+}`;
