@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { JsonPipe } from '@angular/common';
-import { FormField, form } from '@angular/forms/signals';
+import { FormField, applyEach, form } from '@angular/forms/signals';
 
 import { InputDirective } from '@agorapulse/ui-components/input';
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
@@ -11,10 +11,16 @@ import { RadioComponent } from '@agorapulse/ui-components/radio';
 
 import { Channel, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
-import { emptyDraft, emptyMediaItem, existingDraft } from '../shared/post-draft';
-import { composerSchema } from './composer-schema';
+import { MediaItem, emptyDraft, emptyMediaItem, existingDraft } from '../shared/post-draft';
+import { composerSchema, mediaItemSchema } from './composer-schema';
 import { CodePanel } from '../shared/code-panel';
-import { SIGNAL_SCHEMAS_DEFINITION, SIGNAL_SCHEMAS_LOAD, SIGNAL_SCHEMAS_USAGE } from './schemas-snippets';
+import {
+  SIGNAL_SCHEMAS_COMPOSED,
+  SIGNAL_SCHEMAS_LOAD,
+  SIGNAL_SCHEMAS_REUSE,
+  SIGNAL_SCHEMAS_SUB,
+  SIGNAL_SCHEMAS_USAGE,
+} from './schemas-snippets';
 
 /**
  * Step 8 — every rule extracted, and the whole form is one line.
@@ -148,9 +154,49 @@ import { SIGNAL_SCHEMAS_DEFINITION, SIGNAL_SCHEMAS_LOAD, SIGNAL_SCHEMAS_USAGE } 
         </div>
       </form>
 
-      <app-code label="composer-schema.ts" [code]="definitionSnippet" />
+      <app-code label="1 · a sub-schema, on its own" [code]="subSnippet" />
+      <app-code label="2 · composed into the big schema" [code]="composedSnippet" />
       <app-code label="…and the whole form" [code]="usageSnippet" />
       <app-code label="Loading is one assignment" [code]="loadSnippet" />
+
+      <h3>The same sub-schema, a different form</h3>
+      <p class="demo__intro">
+        A bulk media editor with no post around it, validated by the very same
+        <code>mediaItemSchema</code>. Nothing about the rules is repeated.
+      </p>
+
+      <form novalidate>
+        @for (item of bulkForm; track $index) {
+          <div class="media-row">
+            <ap-form-field>
+              <input apInput placeholder="https://…" [formField]="item.url" />
+              @if (item.url().touched() && item.url().invalid()) {
+                <ap-form-message
+                  messageType="error"
+                  [message]="item.url().errors()[0].message ?? 'Invalid'"
+                />
+              }
+            </ap-form-field>
+            <ap-form-field>
+              <input apInput placeholder="Alt text" [formField]="item.altText" />
+              @if (item.altText().touched() && item.altText().invalid()) {
+                <ap-form-message
+                  messageType="error"
+                  [message]="item.altText().errors()[0].message ?? 'Invalid'"
+                />
+              }
+            </ap-form-field>
+            <ap-button [config]="{ style: 'stroked', color: 'red' }" (click)="removeBulk($index)">
+              Remove
+            </ap-button>
+          </div>
+        }
+        <ap-button [config]="{ style: 'stroked', color: 'grey' }" (click)="addBulk()">
+          Add row
+        </ap-button>
+      </form>
+
+      <app-code label="3 · reused by an unrelated form" [code]="reuseSnippet" />
 
       <p class="demo__pain demo__win">
         <strong>Loading is one assignment.</strong> <code>model.set(draft)</code> — no event
@@ -164,7 +210,9 @@ import { SIGNAL_SCHEMAS_DEFINITION, SIGNAL_SCHEMAS_LOAD, SIGNAL_SCHEMAS_USAGE } 
   `,
 })
 export class SchemasPage {
-  protected readonly definitionSnippet = SIGNAL_SCHEMAS_DEFINITION;
+  protected readonly subSnippet = SIGNAL_SCHEMAS_SUB;
+  protected readonly composedSnippet = SIGNAL_SCHEMAS_COMPOSED;
+  protected readonly reuseSnippet = SIGNAL_SCHEMAS_REUSE;
   protected readonly usageSnippet = SIGNAL_SCHEMAS_USAGE;
   protected readonly loadSnippet = SIGNAL_SCHEMAS_LOAD;
 
@@ -189,6 +237,25 @@ export class SchemasPage {
       ...draft,
       media: draft.media.filter((_, i) => i !== index),
     }));
+  }
+
+  /**
+   * A second, unrelated form — a bulk media editor with no post around it —
+   * validated by the *same* mediaItemSchema. This is what "reusable" has to mean:
+   * one definition, two forms, no copy of the rules.
+   */
+  protected readonly bulkModel = signal<MediaItem[]>([emptyMediaItem()]);
+
+  protected readonly bulkForm = form(this.bulkModel, (path) => {
+    applyEach(path, mediaItemSchema);
+  });
+
+  protected addBulk(): void {
+    this.bulkModel.update((items) => [...items, emptyMediaItem()]);
+  }
+
+  protected removeBulk(index: number): void {
+    this.bulkModel.update((items) => items.filter((_, i) => i !== index));
   }
 
   protected loadExisting(): void {

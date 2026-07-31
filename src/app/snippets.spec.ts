@@ -43,8 +43,10 @@ import {
   SIGNAL_SUBMIT_TEMPLATE,
 } from './16-signal-submit/submit-snippets';
 import {
-  SIGNAL_SCHEMAS_DEFINITION,
+  SIGNAL_SCHEMAS_COMPOSED,
   SIGNAL_SCHEMAS_LOAD,
+  SIGNAL_SCHEMAS_REUSE,
+  SIGNAL_SCHEMAS_SUB,
   SIGNAL_SCHEMAS_USAGE,
 } from './17-signal-schemas/schemas-snippets';
 import { ZOD_SCHEMA, ZOD_WIRING } from './19-signal-zod/zod-snippets';
@@ -103,7 +105,9 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
 
   ['S8 usage', SIGNAL_SCHEMAS_USAGE, '17-signal-schemas/schemas-page.ts'],
   ['S8 load', SIGNAL_SCHEMAS_LOAD, '17-signal-schemas/schemas-page.ts'],
-  ['S8 definition', SIGNAL_SCHEMAS_DEFINITION, '17-signal-schemas/composer-schema.ts'],
+  ['S8 sub-schema', SIGNAL_SCHEMAS_SUB, '17-signal-schemas/composer-schema.ts'],
+  ['S8 composed', SIGNAL_SCHEMAS_COMPOSED, '17-signal-schemas/composer-schema.ts'],
+  ['S8 reuse', SIGNAL_SCHEMAS_REUSE, '17-signal-schemas/schemas-page.ts'],
 
   ['Bonus zod schema', ZOD_SCHEMA, '19-signal-zod/zod-page.ts'],
   ['Bonus zod wiring', ZOD_WIRING, '19-signal-zod/zod-page.ts'],

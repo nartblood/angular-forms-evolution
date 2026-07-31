@@ -1,9 +1,9 @@
 import { Injector, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { form } from '@angular/forms/signals';
+import { applyEach, form } from '@angular/forms/signals';
 
 import { emptyDraft, existingDraft, PostDraft } from '../shared/post-draft';
-import { composerSchema } from './composer-schema';
+import { composerSchema, mediaItemSchema } from './composer-schema';
 
 /**
  * The rules are testable on their own — no component, no DOM, no TestBed
@@ -86,5 +86,20 @@ describe('composerSchema', () => {
     const { composer } = composerFor(existingDraft());
 
     expect(composer().valid()).toBe(true);
+  });
+
+  it('reuses mediaItemSchema in a form that has no post around it', () => {
+    // The claim S8 makes: one definition, two unrelated forms, no repeated rules.
+    const bulk = signal([{ url: '', altText: '' }]);
+    const bulkForm = form(bulk, (path) => applyEach(path, mediaItemSchema), {
+      injector: TestBed.inject(Injector),
+    });
+
+    expect(bulkForm[0].url().errors()[0].kind).toBe('required');
+    expect(bulkForm[0].altText().errors()[0].kind).toBe('required');
+
+    bulk.set([{ url: 'https://example.com/a.jpg', altText: 'A photo' }]);
+
+    expect(bulkForm().valid()).toBe(true);
   });
 });
