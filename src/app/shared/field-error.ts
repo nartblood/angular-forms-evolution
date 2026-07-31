@@ -6,9 +6,9 @@ import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { FieldError, FormMessages } from './i18n';
 
 /**
- * The error-display policy, written once.
+ * The error-display policy, written once. Used by the translations step (S9).
  *
- * Every page before this one repeats the same four lines under every field:
+ * The demo pages each inline the display so they stand alone:
  *
  * ```html
  * @if (composer.content().touched() && composer.content().invalid()) {
@@ -17,11 +17,12 @@ import { FieldError, FormMessages } from './i18n';
  * }
  * ```
  *
- * That is fine in a demo where each step must stand alone, and a disaster in a
- * real app: the `?? 'Invalid'` fallback, the choice of *which* error to show, and
- * *when* to show it are product decisions, and copy-pasting them per field means
- * they diverge per field. Signal Forms makes them collapsible into one component
- * because a field is a value you can pass around, not a directive bound in place.
+ * In a real app that is a liability: the `?? 'Invalid'` fallback, the choice of
+ * *which* error to show, and *when* to show it are product decisions, and
+ * copy-pasting them per field means they diverge per field. Signal Forms makes
+ * them collapsible into one component, because a field is a value you can pass
+ * around rather than a directive bound in place — `[field]="composer.channels"`
+ * hands over a self-contained handle, no root form needed.
  *
  * Three decisions live here:
  *
@@ -33,7 +34,7 @@ import { FieldError, FormMessages } from './i18n';
  *    for (and never clears on `form.reset()`).
  * 2. **Which.** The first error by default; all of them with `[all]="true"`.
  * 3. **What it says.** A validator either carries its own `message`, or emits a
- *    `kind` the view translates — see the translations step.
+ *    `kind` the view translates.
  */
 @Component({
   selector: 'app-field-error',

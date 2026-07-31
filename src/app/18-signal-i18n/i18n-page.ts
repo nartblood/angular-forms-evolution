@@ -1,5 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { FormField, form, minLength, required, validate } from '@angular/forms/signals';
 
@@ -18,7 +17,7 @@ import { I18N_BRIDGE, I18N_PARAMS, I18N_RESOLVER, I18N_SCHEMA } from './i18n-sni
 const MIN_CONTENT_LENGTH = 10;
 
 /**
- * S10 — translated validation messages.
+ * S9 — translated validation messages.
  *
  * The rule: validators declare *what failed* (`kind` plus params); the view
  * decides *what to say*. Hardcoding copy in a schema makes it untranslatable,
@@ -28,7 +27,6 @@ const MIN_CONTENT_LENGTH = 10;
   selector: 'app-signal-i18n-page',
   imports: [
     FormField,
-    RouterLink,
     TranslatePipe,
     TextareaDirective,
     FormFieldComponent,
@@ -39,7 +37,7 @@ const MIN_CONTENT_LENGTH = 10;
   ],
   template: `
     <section class="demo">
-      <span class="demo__badge demo__badge--signal">S10 · signal forms</span>
+      <span class="demo__badge demo__badge--signal">S9 · signal forms</span>
       <h2>Translated messages</h2>
 
       <p class="demo__intro">
@@ -50,10 +48,10 @@ const MIN_CONTENT_LENGTH = 10;
       </p>
 
       <p class="demo__intro">
-        This page has no message plumbing of its own: it reuses
-        <code>&lt;app-field-error&gt;</code> from
-        <a routerLink="/signal/errors">S9</a>, which is where the
-        <code>kind</code> → key fallback lives. Adding a language changes one table.
+        The resolution lives in one shared component —
+        <code>&lt;app-field-error [field]="composer.content" /&gt;</code>. A field is a value, so
+        <em>when</em> to reveal an error and <em>what it says</em> are written once rather than
+        restated under every field. Adding a language changes one table.
       </p>
 
       <div class="field">
@@ -82,8 +80,8 @@ const MIN_CONTENT_LENGTH = 10;
         </div>
 
         <ap-form-field>
-          <label for="s10-content">{{ 'composer.content.label' | translate }}</label>
-          <textarea id="s10-content" apTextarea [formField]="composer.content"></textarea>
+          <label for="s9-content">{{ 'composer.content.label' | translate }}</label>
+          <textarea id="s9-content" apTextarea [formField]="composer.content"></textarea>
           <app-field-error [field]="composer.content" ngProjectAs="ap-form-message" />
         </ap-form-field>
 

@@ -15,9 +15,9 @@ import { provideDemoTranslations } from '../shared/i18n';
  * reactive on its own.
  *
  * Asserted on the rendered text rather than on a component method, because the
- * display now goes through the shared `<app-field-error>` built in S9.
+ * display now goes through the shared `<app-field-error>` the shared display component.
  */
-describe('S10 · translated validation messages', () => {
+describe('S9 · translated validation messages', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideRouter([]), provideDemoTranslations()],
