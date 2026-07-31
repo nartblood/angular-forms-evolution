@@ -58,7 +58,7 @@ describe('S9 · translated validation messages', () => {
     expect(messagesOf(fixture)).toEqual(['Pick at least one channel', 'This field is required']);
   });
 
-  it('interpolates params taken from the validator constraints', async () => {
+  it('interpolates params from the error object itself', async () => {
     const { fixture, page } = await setup();
 
     // Long enough to clear `required`, short enough to trip minLength(10).
@@ -75,14 +75,17 @@ describe('S9 · translated validation messages', () => {
     expect(messagesOf(fixture)).toEqual(['Write at least 10 characters']);
   });
 
-  it('re-translates existing errors when the language changes', async () => {
+  it('re-translates existing errors when the language changes — both variants', async () => {
     const { fixture, page } = await setup();
     expect(messagesOf(fixture)).toContain('This field is required');
 
     page.messages.use('fr');
     await fixture.whenStable();
 
-    // Without the onLangChange → signal bridge, this would still read English.
+    // First message = channels, resolved by the `translate` pipe in the template.
+    // Second = content, resolved by TranslateService.instant() in TypeScript —
+    // and that one would still read English without the onLangChange → signal
+    // bridge. Asserting both is what makes the comparison honest.
     expect(page.messages.lang()).toBe('fr');
     expect(messagesOf(fixture)).toEqual([
       'Sélectionnez au moins un canal',

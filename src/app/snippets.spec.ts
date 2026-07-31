@@ -61,6 +61,7 @@ import {
   I18N_PARAMS,
   I18N_RESOLVER,
   I18N_SCHEMA,
+  I18N_TEMPLATE,
 } from './18-signal-i18n/i18n-snippets';
 import { ZOD_SCHEMA, ZOD_WIRING } from './19-signal-zod/zod-snippets';
 
@@ -121,6 +122,7 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
   ['S8 reuse', SIGNAL_SCHEMAS_REUSE, '17-signal-schemas/schemas-page.ts'],
 
   ['S9 i18n schema', I18N_SCHEMA, '18-signal-i18n/i18n-page.ts'],
+  ['S9 i18n template variant', I18N_TEMPLATE, '18-signal-i18n/i18n-page.ts'],
   ['S9 i18n params', I18N_PARAMS, 'shared/field-error.ts'],
   ['S9 i18n resolver', I18N_RESOLVER, 'shared/i18n.ts'],
   ['S9 i18n bridge', I18N_BRIDGE, 'shared/i18n.ts'],

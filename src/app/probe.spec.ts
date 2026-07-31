@@ -1,6 +1,6 @@
 import { Component, Injector, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { form, required } from '@angular/forms/signals';
+import { form, minLength, required } from '@angular/forms/signals';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { ChannelPicker } from './shared/channel-picker';
@@ -80,6 +80,25 @@ describe('field tree probe', () => {
     // Still stable after the value changes — the node is reused, not rebuilt.
     model.set({ content: 'Hello', title: '' });
     expect(composer.content).toBe(composer.content);
+  });
+
+  it('puts the constraint on the error object, not only on the field state', () => {
+    const model = signal({ content: '' });
+    const composer = form(model, (path) => minLength(path.content, 10), {
+      injector: TestBed.inject(Injector),
+    });
+    model.set({ content: 'short' });
+
+    const error = composer.content().errors()[0] as { kind: string; minLength?: number };
+
+    // This is what lets a template do `| translate: error` with no extra work:
+    // MinLengthValidationError carries `minLength`, so the interpolation params
+    // are the error itself. Same for min/max/maxLength.
+    expect(error.kind).toBe('minLength');
+    expect(error.minLength).toBe(10);
+
+    // And it survives a spread, which a message resolver relies on.
+    expect({ ...error }).toMatchObject({ kind: 'minLength', minLength: 10 });
   });
 
   it('carries its own state, with no reference to the root passed in', () => {

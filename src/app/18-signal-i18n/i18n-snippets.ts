@@ -14,6 +14,24 @@ export const I18N_SCHEMA = `protected readonly composer = form(this.model, (path
   );
 });`;
 
+/**
+ * Variant A, from `i18n-page.ts`: the copy is resolved in the template.
+ *
+ * Nothing is injected and nothing is bridged — `TranslatePipe` re-renders itself
+ * on a language change. `| translate: error` passes the error *object* as the
+ * interpolation params, which works because a built-in error carries its own
+ * constraint (`MinLengthValidationError.minLength`), pinned in `probe.spec.ts`.
+ */
+export const I18N_TEMPLATE = `@if (composer.channels().touched()) {
+  @for (error of composer.channels().errors(); track error.kind) {
+    <ap-form-message
+      messageType="error"
+      [message]="'forms.errors.' + error.kind | translate: error"
+    />
+  }
+}`;
+
+/** Variant B, from `shared/i18n.ts`: the copy is resolved in TypeScript. */
 export const I18N_RESOLVER = `/** Maps a validator's \`kind\` onto a translation key. No copy in the schema. */
 message(error: FieldError): string {
   this.lang(); // establishes the reactive dependency — see above
@@ -32,21 +50,18 @@ readonly lang = toSignal(
 );`;
 
 /**
- * From `shared/field-error.ts` — the display component built in S9. This page
- * resolves no messages of its own: it renders `<app-field-error [field]="…" />`
- * and the same 12 lines run for every field, on every page.
+ * Variant B's call site, from `shared/field-error.ts`. The page renders
+ * `<app-field-error [field]="composer.content" />` and this runs for every field:
+ * one place that decides whether the validator's own copy wins over a
+ * translation, reusable across pages — and callable from outside a template.
  */
-export const I18N_PARAMS = `private text(state: FieldState<T>, error: ValidationError): string {
+export const I18N_PARAMS = `private text(error: ValidationError): string {
   if (error.message) return error.message;
 
-  // No copy: translate the kind, and take interpolation params from the
-  // field's own constraint signals — change \`minLength(path.content, 10)\` to
-  // 20 and the sentence follows, with no edit to any translation file.
-  return this.i18n.message({
-    ...error,
-    minLength: state.minLength?.(),
-    maxLength: state.maxLength?.(),
-    min: state.min?.(),
-    max: state.max?.(),
-  } as unknown as FieldError);
+  // No copy here: translate the kind, and pass the error itself as the
+  // interpolation params. Built-in errors carry their own constraint —
+  // \`MinLengthValidationError\` has \`minLength\` — so changing
+  // \`minLength(path.content, 10)\` to 20 changes the sentence with no edit to
+  // any translation file, and nothing has to read the field's state.
+  return this.i18n.message(error as unknown as FieldError);
 }`;

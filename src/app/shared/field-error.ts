@@ -1,5 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { FieldState, FieldTree, ValidationError } from '@angular/forms/signals';
+import { FieldTree, ValidationError } from '@angular/forms/signals';
 
 import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 
@@ -61,21 +61,17 @@ export class FieldErrorDisplay<T> {
     if (!state.touched()) return [];
 
     const errors = state.errors();
-    return (this.all() ? errors : errors.slice(0, 1)).map((error) => this.text(state, error));
+    return (this.all() ? errors : errors.slice(0, 1)).map((error) => this.text(error));
   });
 
-  private text(state: FieldState<T>, error: ValidationError): string {
+  private text(error: ValidationError): string {
     if (error.message) return error.message;
 
-    // No copy: translate the kind, and take interpolation params from the
-    // field's own constraint signals — change `minLength(path.content, 10)` to
-    // 20 and the sentence follows, with no edit to any translation file.
-    return this.i18n.message({
-      ...error,
-      minLength: state.minLength?.(),
-      maxLength: state.maxLength?.(),
-      min: state.min?.(),
-      max: state.max?.(),
-    } as unknown as FieldError);
+    // No copy here: translate the kind, and pass the error itself as the
+    // interpolation params. Built-in errors carry their own constraint —
+    // `MinLengthValidationError` has `minLength` — so changing
+    // `minLength(path.content, 10)` to 20 changes the sentence with no edit to
+    // any translation file, and nothing has to read the field's state.
+    return this.i18n.message(error as unknown as FieldError);
   }
 }

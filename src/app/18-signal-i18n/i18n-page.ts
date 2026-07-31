@@ -4,6 +4,7 @@ import { FormField, form, minLength, required, validate } from '@angular/forms/s
 
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
 import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
+import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { Channel, contentLimitFor, toggleChannel } from '../shared/channel';
@@ -12,7 +13,13 @@ import { CodePanel } from '../shared/code-panel';
 import { FieldErrorDisplay } from '../shared/field-error';
 import { FormMessages } from '../shared/i18n';
 import { emptyDraft } from '../shared/post-draft';
-import { I18N_BRIDGE, I18N_PARAMS, I18N_RESOLVER, I18N_SCHEMA } from './i18n-snippets';
+import {
+  I18N_BRIDGE,
+  I18N_PARAMS,
+  I18N_RESOLVER,
+  I18N_SCHEMA,
+  I18N_TEMPLATE,
+} from './i18n-snippets';
 
 const MIN_CONTENT_LENGTH = 10;
 
@@ -30,6 +37,7 @@ const MIN_CONTENT_LENGTH = 10;
     TranslatePipe,
     TextareaDirective,
     FormFieldComponent,
+    FormMessageComponent,
     ButtonComponent,
     ChannelPicker,
     CodePanel,
@@ -48,10 +56,11 @@ const MIN_CONTENT_LENGTH = 10;
       </p>
 
       <p class="demo__intro">
-        The resolution lives in one shared component —
-        <code>&lt;app-field-error [field]="composer.content" /&gt;</code>. A field is a value, so
-        <em>when</em> to reveal an error and <em>what it says</em> are written once rather than
-        restated under every field. Adding a language changes one table.
+        <strong>Two ways to resolve the copy, one on each field below.</strong> Channels translates
+        <em>in the template</em> with the <code>translate</code> pipe; content translates
+        <em>in TypeScript</em>, inside the shared
+        <code>&lt;app-field-error&gt;</code> component. Switch the language and watch both — they
+        get there differently, and only one of them needed extra work to stay live.
       </p>
 
       <div class="field">
@@ -76,12 +85,25 @@ const MIN_CONTENT_LENGTH = 10;
         <div class="field">
           <label>{{ 'composer.channels.label' | translate }}</label>
           <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
-          <app-field-error [field]="composer.channels" />
+
+          <!-- Variant A — translated in the template. The pipe resolves the key and
+               re-renders itself when the language changes; the params are the error
+               object, because built-in errors carry their own constraint. -->
+          @if (composer.channels().touched()) {
+            @for (error of composer.channels().errors(); track error.kind) {
+              <ap-form-message
+                messageType="error"
+                [message]="'forms.errors.' + error.kind | translate: error"
+              />
+            }
+          }
         </div>
 
         <ap-form-field>
           <label for="s9-content">{{ 'composer.content.label' | translate }}</label>
           <textarea id="s9-content" apTextarea [formField]="composer.content"></textarea>
+
+          <!-- Variant B — translated in TypeScript, inside the component. -->
           <app-field-error [field]="composer.content" ngProjectAs="ap-form-message" />
         </ap-form-field>
 
@@ -93,19 +115,61 @@ const MIN_CONTENT_LENGTH = 10;
       </form>
 
       <app-code label="The schema — no copy at all" [code]="schemaSnippet" />
-      <app-code label="kind → translation key" [code]="resolverSnippet" />
-      <app-code
-        label="Params come from the validator's own constraints (shared/field-error.ts)"
-        [code]="paramsSnippet"
-      />
-      <app-code label="The catch: instant() is not reactive" [code]="bridgeSnippet" />
+      <app-code label="A · in the template, with the pipe" lang="html" [code]="templateSnippet" />
+      <app-code label="B · in TypeScript — kind → translation key" [code]="resolverSnippet" />
+      <app-code label="B · called from the shared component" [code]="paramsSnippet" />
+      <app-code label="B's catch: instant() is not reactive" [code]="bridgeSnippet" />
+
+      <table class="demo__scoreboard">
+        <thead>
+          <tr>
+            <th></th>
+            <th>A · template pipe</th>
+            <th>B · TypeScript</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Stays live on language switch</td>
+            <td>free — the pipe re-renders</td>
+            <td>only with the <code>onLangChange</code> → signal bridge</td>
+          </tr>
+          <tr>
+            <td>Interpolation params</td>
+            <td colspan="2">the error object, for both</td>
+          </tr>
+          <tr>
+            <td>Written</td>
+            <td>per field, in every template</td>
+            <td>once, reused by every field</td>
+          </tr>
+          <tr>
+            <td>Usable outside the view</td>
+            <td>no</td>
+            <td>yes — summaries, analytics, tests</td>
+          </tr>
+          <tr>
+            <td>Validator's own message wins</td>
+            <td>needs an extra <code>&#64;if</code></td>
+            <td>one <code>if</code> in the resolver</td>
+          </tr>
+        </tbody>
+      </table>
 
       <p class="demo__pain">
-        <strong>The catch worth knowing.</strong> <code>TranslateService.instant()</code> is a plain
-        function call, so nothing re-runs it when the language changes. Bridging
-        <code>onLangChange</code> into a signal with <code>toSignal</code> is what makes the
-        messages above update live — without it, errors stay frozen in the old language until the
-        user retypes.
+        <strong>The catch that only hits variant B.</strong>
+        <code>TranslateService.instant()</code> is a plain function call, so nothing re-runs it when
+        the language changes. Bridging <code>onLangChange</code> into a signal with
+        <code>toSignal</code> is what makes the content message update live — without it, it stays
+        frozen in the old language until the user retypes, while the channels message next to it
+        switches correctly. That asymmetry is the whole argument for knowing both.
+      </p>
+
+      <p class="demo__pain demo__win">
+        <strong>Which to use.</strong> The pipe for a one-off field; the resolver everywhere else —
+        it is written once, and it's the only variant whose output you can reach from TypeScript,
+        which you need the moment a message has to appear in a form-level summary, an
+        <code>aria-live</code> region, an analytics event or a test assertion.
       </p>
 
       <p class="demo__pain demo__win">
@@ -125,6 +189,7 @@ export class I18nPage {
   protected readonly messages = inject(FormMessages);
 
   protected readonly schemaSnippet = I18N_SCHEMA;
+  protected readonly templateSnippet = I18N_TEMPLATE;
   protected readonly resolverSnippet = I18N_RESOLVER;
   protected readonly paramsSnippet = I18N_PARAMS;
   protected readonly bridgeSnippet = I18N_BRIDGE;
