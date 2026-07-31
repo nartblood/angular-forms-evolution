@@ -1,8 +1,34 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 
 import { ConditionalPage } from './conditional-page';
-import { PostDraft } from '../../shared/post-draft';
+import { PostDraft } from '../shared/post-draft';
+import { findSnippetMismatch } from '../shared/snippet-guard';
+import { SIGNAL_CONDITIONAL_MODEL, SIGNAL_CONDITIONAL_RULE } from './conditional-snippets';
+
+describe('S2 snippets match the source', () => {
+  const source = readFileSync(
+    resolve(process.cwd(), 'src/app/11-signal-conditional/conditional-page.ts'),
+    'utf8',
+  );
+
+  for (const [name, snippet] of [
+    ['the rule', SIGNAL_CONDITIONAL_RULE],
+    ['the model', SIGNAL_CONDITIONAL_MODEL],
+  ] as ReadonlyArray<[string, string]>) {
+    it(`${name} appears verbatim in conditional-page.ts`, () => {
+      const mismatch = findSnippetMismatch(snippet, source);
+      expect(
+        mismatch,
+        mismatch ? `Snippet drifted. Line not found: ${mismatch.firstMissingLine}` : '',
+      ).toBeNull();
+    });
+  }
+});
 
 /**
  * The design system's CVA interop question, answered empirically.
@@ -13,7 +39,7 @@ import { PostDraft } from '../../shared/post-draft';
  */
 describe('ConditionalPage — ap-radio driven by [formField]', () => {
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient()] });
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });
   });
 
   function setup() {

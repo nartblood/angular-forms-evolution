@@ -9,8 +9,8 @@ import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
 import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
-import { Channel, contentLimitFor, toggleChannel } from '../../shared/channel';
-import { ChannelPicker } from '../../shared/channel-picker';
+import { Channel, contentLimitFor, toggleChannel } from '../shared/channel';
+import { ChannelPicker } from '../shared/channel-picker';
 
 /**
  * Bonus — the same rules as a Zod schema.

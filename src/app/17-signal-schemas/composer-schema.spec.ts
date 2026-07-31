@@ -2,7 +2,7 @@ import { Injector, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { form } from '@angular/forms/signals';
 
-import { emptyDraft, existingDraft, PostDraft } from '../../shared/post-draft';
+import { emptyDraft, existingDraft, PostDraft } from '../shared/post-draft';
 import { composerSchema } from './composer-schema';
 
 /**

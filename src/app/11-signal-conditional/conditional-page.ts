@@ -1,4 +1,5 @@
 import { Component, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormField, form, required, validate } from '@angular/forms/signals';
 
 import { InputDirective } from '@agorapulse/ui-components/input';
@@ -8,7 +9,9 @@ import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 import { RadioComponent } from '@agorapulse/ui-components/radio';
 
-import { emptyDraft } from '../../shared/post-draft';
+import { CodePanel } from '../shared/code-panel';
+import { emptyDraft } from '../shared/post-draft';
+import { SIGNAL_CONDITIONAL_MODEL, SIGNAL_CONDITIONAL_RULE } from './conditional-snippets';
 
 /**
  * Step 2 — conditional rules with `when`.
@@ -28,10 +31,17 @@ import { emptyDraft } from '../../shared/post-draft';
     FormMessageComponent,
     ButtonComponent,
     RadioComponent,
+    RouterLink,
+    CodePanel,
   ],
   template: `
     <section class="demo">
-      <h2>2 · Conditional</h2>
+      <span class="demo__badge demo__badge--signal">S2 · signal forms</span>
+      <h2>Conditional validation</h2>
+      <a class="demo__pair-link" routerLink="/reactive/conditional">
+        ← Compare with R2 · reactive
+      </a>
+
       <p class="demo__intro">
         "A date is required, but only when scheduling." One rule, one place, correct on first
         render — no subscription, no priming, no <code>updateValueAndValidity</code>.
@@ -81,10 +91,48 @@ import { emptyDraft } from '../../shared/post-draft';
         </div>
       </form>
 
+      <app-code label="The whole rule" [code]="ruleSnippet" />
+      <app-code label="…over this state" [code]="modelSnippet" />
+
+      <table class="demo__scoreboard">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Reactive (R2)</th>
+            <th>Signal Forms (this page)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Lines for the rule</td>
+            <td>22 (non-blank)</td>
+            <td>10</td>
+          </tr>
+          <tr>
+            <td>Moving parts</td>
+            <td>a method, a subscription, a priming call, a <code>ValidatorFn</code></td>
+            <td>two declarations in the schema</td>
+          </tr>
+          <tr>
+            <td>Correct on first render</td>
+            <td>only if you remember the priming call</td>
+            <td>always — the rule is derived</td>
+          </tr>
+        </tbody>
+      </table>
+
       <p class="demo__pain demo__win">
         <strong>Switch between Now and Schedule.</strong> Validity tracks the mode immediately.
         Because the rule is derived rather than applied, there is no state to get out of step —
         and nothing to remember to call when the form first loads.
+      </p>
+
+      <p class="demo__pain">
+        <strong>Also the CVA interop test.</strong> Those radios are
+        <code>ap-radio</code> — a <code>ControlValueAccessor</code> component written for
+        <code>ngModel</code> / <code>formControlName</code> — driven here by
+        <code>[formField]</code>. <code>conditional-page.spec.ts</code> asserts it writes back into
+        the model signal.
       </p>
 
       <pre class="demo__state">publishMode: {{ model().publishMode }}
@@ -93,6 +141,9 @@ valid: {{ composer().valid() }}</pre>
   `,
 })
 export class ConditionalPage {
+  protected readonly ruleSnippet = SIGNAL_CONDITIONAL_RULE;
+  protected readonly modelSnippet = SIGNAL_CONDITIONAL_MODEL;
+
   protected readonly model = signal(emptyDraft());
 
   protected readonly composer = form(this.model, (path) => {

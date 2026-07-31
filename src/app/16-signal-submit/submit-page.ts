@@ -7,10 +7,10 @@ import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
 import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
-import { Channel, toggleChannel } from '../../shared/channel';
-import { ChannelPicker } from '../../shared/channel-picker';
-import { emptyDraft } from '../../shared/post-draft';
-import { PublishApi } from '../../shared/publish-api';
+import { Channel, toggleChannel } from '../shared/channel';
+import { ChannelPicker } from '../shared/channel-picker';
+import { emptyDraft } from '../shared/post-draft';
+import { PublishApi } from '../shared/publish-api';
 
 /**
  * Step 7 — submission.

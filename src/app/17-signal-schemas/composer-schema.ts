@@ -5,8 +5,8 @@ import {
   contentLimitFor,
   maxMediaFor,
   supportsFirstComment,
-} from '../../shared/channel';
-import { MediaItem, PostDraft } from '../../shared/post-draft';
+} from '../shared/channel';
+import { MediaItem, PostDraft } from '../shared/post-draft';
 
 /**
  * The composer's rules as a standalone, reusable artifact.

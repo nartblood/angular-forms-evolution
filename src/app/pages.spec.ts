@@ -1,19 +1,21 @@
 import { Type } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 
 import { fakeBackendInterceptor } from './shared/fake-backend';
-import { TemplateDrivenPage } from './template-driven/template-driven-page';
-import { ReactivePage } from './reactive/reactive-page';
-import { MinimalPage } from './signal-forms/minimal/minimal-page';
-import { ConditionalPage } from './signal-forms/conditional/conditional-page';
-import { CrossFieldPage } from './signal-forms/cross-field/cross-field-page';
-import { ArraysPage } from './signal-forms/arrays/arrays-page';
-import { VisibilityPage } from './signal-forms/visibility/visibility-page';
-import { AsyncPage } from './signal-forms/async/async-page';
-import { SubmitPage } from './signal-forms/submit/submit-page';
-import { SchemasPage } from './signal-forms/schemas/schemas-page';
-import { ZodPage } from './signal-forms/zod/zod-page';
+import { TemplateDrivenPage } from './01-template-driven/template-driven-page';
+import { ConditionalReactivePage } from './02-reactive-conditional/conditional-reactive-page';
+import { ReactivePage } from './09-reactive-everything/reactive-page';
+import { MinimalPage } from './10-signal-minimal/minimal-page';
+import { ConditionalPage } from './11-signal-conditional/conditional-page';
+import { CrossFieldPage } from './12-signal-cross-field/cross-field-page';
+import { ArraysPage } from './13-signal-arrays/arrays-page';
+import { VisibilityPage } from './14-signal-visibility/visibility-page';
+import { AsyncPage } from './15-signal-async/async-page';
+import { SubmitPage } from './16-signal-submit/submit-page';
+import { SchemasPage } from './17-signal-schemas/schemas-page';
+import { ZodPage } from './18-signal-zod/zod-page';
 
 /**
  * Smoke coverage: every page must actually mount and render.
@@ -24,7 +26,8 @@ import { ZodPage } from './signal-forms/zod/zod-page';
  */
 const PAGES: ReadonlyArray<[string, Type<unknown>]> = [
   ['template-driven', TemplateDrivenPage],
-  ['reactive', ReactivePage],
+  ['reactive · conditional (R2)', ConditionalReactivePage],
+  ['reactive · everything (R9)', ReactivePage],
   ['signal · minimal', MinimalPage],
   ['signal · conditional', ConditionalPage],
   ['signal · cross-field', CrossFieldPage],
@@ -39,7 +42,7 @@ const PAGES: ReadonlyArray<[string, Type<unknown>]> = [
 describe('demo pages', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(withInterceptors([fakeBackendInterceptor]))],
+      providers: [provideHttpClient(withInterceptors([fakeBackendInterceptor])), provideRouter([])],
     });
   });
 

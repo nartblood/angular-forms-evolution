@@ -7,8 +7,8 @@ import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
 import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
-import { ALREADY_PUBLISHED, DUPLICATE_CHECK_URL } from '../../shared/fake-backend';
-import { emptyDraft } from '../../shared/post-draft';
+import { ALREADY_PUBLISHED, DUPLICATE_CHECK_URL } from '../shared/fake-backend';
+import { emptyDraft } from '../shared/post-draft';
 
 /**
  * Step 6 — async validation.

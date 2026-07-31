@@ -9,9 +9,9 @@ import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 import { RadioComponent } from '@agorapulse/ui-components/radio';
 
-import { Channel, toggleChannel } from '../../shared/channel';
-import { ChannelPicker } from '../../shared/channel-picker';
-import { emptyDraft, emptyMediaItem, existingDraft } from '../../shared/post-draft';
+import { Channel, toggleChannel } from '../shared/channel';
+import { ChannelPicker } from '../shared/channel-picker';
+import { emptyDraft, emptyMediaItem, existingDraft } from '../shared/post-draft';
 import { composerSchema } from './composer-schema';
 
 /**

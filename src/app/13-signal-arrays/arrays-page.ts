@@ -12,9 +12,9 @@ import {
   channelsRequiringMedia,
   maxMediaFor,
   toggleChannel,
-} from '../../shared/channel';
-import { ChannelPicker } from '../../shared/channel-picker';
-import { emptyDraft, emptyMediaItem } from '../../shared/post-draft';
+} from '../shared/channel';
+import { ChannelPicker } from '../shared/channel-picker';
+import { emptyDraft, emptyMediaItem } from '../shared/post-draft';
 
 /**
  * Step 4 — arrays.
