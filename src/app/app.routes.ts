@@ -7,7 +7,13 @@ export const routes: Routes = [
     path: 'template-driven',
     title: 'Template-driven',
     loadComponent: () =>
-      import('./01-template-driven/template-driven-page').then((m) => m.TemplateDrivenPage),
+      import('./00-template-driven/template-driven-page').then((m) => m.TemplateDrivenPage),
+  },
+  {
+    path: 'reactive/minimal',
+    title: 'R1 · Minimal',
+    loadComponent: () =>
+      import('./01-reactive-minimal/minimal-reactive-page').then((m) => m.MinimalReactivePage),
   },
   {
     path: 'reactive/conditional',

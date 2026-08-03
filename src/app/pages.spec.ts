@@ -5,7 +5,8 @@ import { provideRouter } from '@angular/router';
 
 import { fakeBackendInterceptor } from './shared/fake-backend';
 import { provideDemoTranslations } from './shared/i18n';
-import { TemplateDrivenPage } from './01-template-driven/template-driven-page';
+import { TemplateDrivenPage } from './00-template-driven/template-driven-page';
+import { MinimalReactivePage } from './01-reactive-minimal/minimal-reactive-page';
 import { ConditionalReactivePage } from './02-reactive-conditional/conditional-reactive-page';
 import { ReactivePage } from './09-reactive-everything/reactive-page';
 import { MinimalPage } from './10-signal-minimal/minimal-page';
@@ -28,6 +29,7 @@ import { ZodPage } from './19-signal-zod/zod-page';
  */
 const PAGES: ReadonlyArray<[string, Type<unknown>]> = [
   ['template-driven', TemplateDrivenPage],
+  ['reactive · minimal (R1)', MinimalReactivePage],
   ['reactive · conditional (R2)', ConditionalReactivePage],
   ['reactive · everything (R9)', ReactivePage],
   ['signal · minimal', MinimalPage],

@@ -7,8 +7,15 @@ import {
   TEMPLATE_DRIVEN_GAP,
   TEMPLATE_DRIVEN_MARKUP,
   TEMPLATE_DRIVEN_MODEL,
-} from './01-template-driven/template-driven-snippets';
+} from './00-template-driven/template-driven-snippets';
 
+import {
+  REACTIVE_MINIMAL_FORM,
+  REACTIVE_MINIMAL_READ,
+  REACTIVE_MINIMAL_TEMPLATE,
+  REACTIVE_MINIMAL_VALIDATOR,
+  REACTIVE_MINIMAL_WRITE,
+} from './01-reactive-minimal/minimal-reactive-snippets';
 import {
   REACTIVE_CONDITIONAL_RULE,
   REACTIVE_CONDITIONAL_VALIDATOR,
@@ -73,9 +80,15 @@ import { ZOD_SCHEMA, ZOD_WIRING } from './19-signal-zod/zod-snippets';
  * instead. Adding a page means adding a row.
  */
 const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
-  ['TD markup', TEMPLATE_DRIVEN_MARKUP, '01-template-driven/template-driven-page.ts'],
-  ['TD model', TEMPLATE_DRIVEN_MODEL, '01-template-driven/template-driven-page.ts'],
-  ['TD gap', TEMPLATE_DRIVEN_GAP, '01-template-driven/template-driven-page.ts'],
+  ['TD markup', TEMPLATE_DRIVEN_MARKUP, '00-template-driven/template-driven-page.ts'],
+  ['TD model', TEMPLATE_DRIVEN_MODEL, '00-template-driven/template-driven-page.ts'],
+  ['TD gap', TEMPLATE_DRIVEN_GAP, '00-template-driven/template-driven-page.ts'],
+
+  ['R1 form', REACTIVE_MINIMAL_FORM, '01-reactive-minimal/minimal-reactive-page.ts'],
+  ['R1 validator', REACTIVE_MINIMAL_VALIDATOR, '01-reactive-minimal/minimal-reactive-page.ts'],
+  ['R1 template', REACTIVE_MINIMAL_TEMPLATE, '01-reactive-minimal/minimal-reactive-page.ts'],
+  ['R1 write', REACTIVE_MINIMAL_WRITE, '01-reactive-minimal/minimal-reactive-page.ts'],
+  ['R1 read', REACTIVE_MINIMAL_READ, '01-reactive-minimal/minimal-reactive-page.ts'],
 
   ['R2 rule', REACTIVE_CONDITIONAL_RULE, '02-reactive-conditional/conditional-reactive-page.ts'],
   ['R2 wiring', REACTIVE_CONDITIONAL_WIRING, '02-reactive-conditional/conditional-reactive-page.ts'],

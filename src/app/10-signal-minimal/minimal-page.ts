@@ -39,11 +39,16 @@ import {
   ],
   template: `
     <section class="demo">
-      <h2>1 · Minimal</h2>
+      <span class="demo__badge demo__badge--signal">S1 · signal forms</span>
+      <h2>Minimal</h2>
+      <a class="demo__pair-link" routerLink="/reactive/minimal">
+        Compare with R1 · the reactive baseline →
+      </a>
+
       <p class="demo__intro">
-        A <code>signal()</code> of plain state, and a <code>form()</code> derived from it. Compare
-        the line count with the reactive version — and note that
-        <code>composer.content</code> is typed, so a typo is a compile error.
+        A <code>signal()</code> of plain state, and a <code>form()</code> derived from it. Same two
+        fields as R1, same rules — what changes is that there is no second copy of the data to keep
+        in step, and <code>composer.content</code> is typed, so a typo is a compile error.
       </p>
 
       <form novalidate>

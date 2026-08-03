@@ -24,8 +24,10 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | Route | API | What it shows |
 |---|---|---|
 | `/template-driven` | `ngModel` | the five-minute form, and where it stops scaling |
-| `/reactive` | `FormGroup` / `FormControl` | ten mechanisms every project reimplements, marked `PAIN n` in the source |
-| `/signal/minimal` | Signal Forms | the model *is* the form |
+| `/reactive/minimal` | `FormGroup` / `FormControl` | the baseline: a control tree, bound by name — read this before the pain pages |
+| `/reactive/conditional` | | one rule, and the `setValidators` + subscription + priming call it needs |
+| `/reactive` | | ten mechanisms every project reimplements, marked `PAIN n` in the source |
+| `/signal/minimal` | Signal Forms | the model *is* the form (pairs with `/reactive/minimal`) |
 | `/signal/conditional` | | `required({when})` instead of `setValidators` + `updateValueAndValidity` |
 | `/signal/cross-field` | | `valueOf()` — the error lands on the field that renders it |
 | `/signal/arrays` | | `applyEach`, and add/remove as `model.update()` |
@@ -86,7 +88,7 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
 
 ## Tests
 
-`npm test` — 87 tests, in four kinds:
+`npm test` — 93 tests, in four kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.
