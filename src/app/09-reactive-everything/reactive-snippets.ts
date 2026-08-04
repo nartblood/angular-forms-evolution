@@ -1,5 +1,5 @@
 /**
- * The worst four moments of the reactive implementation, shown in place.
+ * The worst moments of the reactive implementation, shown in place.
  * Guarded verbatim against `reactive-page.ts`.
  */
 
@@ -28,9 +28,7 @@ export const REACTIVE_ASYNC_VALIDATOR = `private duplicateContentValidator(): As
   };
 }`;
 
-export const REACTIVE_LOADING = `protected loadExisting(): void {
-  const draft = existingDraft();
-
+export const REACTIVE_LOADING = `private initialiseFrom(draft: PostDraft): void {
   this.form.patchValue(draft, { emitEvent: false });
 
   this.media.clear({ emitEvent: false });
@@ -49,16 +47,19 @@ export const REACTIVE_LOADING = `protected loadExisting(): void {
   this.form.updateValueAndValidity();
 }`;
 
-export const REACTIVE_SETTLED = `/** PAIN 9: "submit once validation settles" is universal, and unimplemented. */
-private async settled(): Promise<void> {
-  if (!this.form.pending) return;
-  await firstValueFrom(
-    this.form.statusChanges.pipe(
-      filter((status) => status !== 'PENDING'),
-      first(),
-    ),
-  );
-}`;
+/**
+ * The counterpart is a Signal Forms one-liner: the model *is* a signal, so
+ * `linkedSignal(() => this.post())` re-initialises the whole form and every rule
+ * re-derives itself. See `probe.spec.ts`, which pins both halves — including the
+ * part that is still manual there: interaction state survives until `reset()`.
+ */
+export const REACTIVE_INPUT_INIT = `effect(() => {
+  const postId = this.postId();
+
+  if (postId) {
+    this.initialiseFrom(this.fetch(postId));
+  }
+});`;
 
 export const REACTIVE_SERVER_ERROR = `if (!result.ok) {
   const control = this.form.get(result.field); // AbstractControl | null

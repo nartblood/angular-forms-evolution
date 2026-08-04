@@ -20,7 +20,7 @@ protected readonly composer = form(this.model, (path) => {
  * `content` is *bound* with `[formField]` (the directive supplies the value, the
  * writes and the blur that sets `touched`), while `channels` is plain state the
  * page writes itself — and still validates. The `@if` noise around the messages
- * is what S9 collapses into one component.
+ * is what S9 collapses into one computed per field.
  */
 export const SIGNAL_MINIMAL_TEMPLATE = `<div class="field">
   <label>Channels</label>

@@ -7,7 +7,7 @@ import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
 import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
-import { ALREADY_PUBLISHED, DUPLICATE_CHECK_URL } from '../shared/fake-backend';
+import { ALREADY_PUBLISHED, CHECK_UNAVAILABLE, DUPLICATE_CHECK_URL } from '../shared/fake-backend';
 import { emptyDraft } from '../shared/post-draft';
 import { CodePanel } from '../shared/code-panel';
 import { SIGNAL_ASYNC_RULE } from './async-snippets';
@@ -37,6 +37,9 @@ import { SIGNAL_ASYNC_RULE } from './async-snippets';
       <p class="demo__intro">
         The server checks whether this content was already published. Type one of
         <em>{{ triggers }}</em> to see it reject (there's a deliberate 700&nbsp;ms delay).
+        <br />
+        Type <em>{{ unavailable }}</em> and the check itself fails with a 503 — that's the
+        <code>onError</code> branch, and the field ends up invalid rather than silently valid.
       </p>
 
       <form novalidate>
@@ -55,10 +58,7 @@ import { SIGNAL_ASYNC_RULE } from './async-snippets';
         }
 
         <div class="actions">
-          <ap-button
-            [disabled]="composer().invalid() || composer().pending()"
-            [loading]="composer().pending()"
-          >
+          <ap-button [loading]="composer().pending()" (click)="composer().markAsTouched()">
             Schedule
           </ap-button>
         </div>
@@ -69,9 +69,10 @@ import { SIGNAL_ASYNC_RULE } from './async-snippets';
       <p class="demo__pain demo__win">
         <strong>No debounce, no cache, no <code>first()</code>.</strong> Returning
         <code>undefined</code> from <code>request</code> skips the call entirely, so short or empty
-        input never hits the server. And <code>pending()</code> is a real signal — it drives
-        <code>ap-button</code>'s own <code>loading</code> state directly, with no
-        <code>settled()</code> helper.
+        input never hits the server. A failed request is <code>onError</code>, one branch next to
+        <code>onSuccess</code> — not a <code>catchError</code> bolted onto a pipe that also has to
+        remember to complete. And <code>pending()</code> is a real signal, wired straight into
+        <code>ap-button</code>'s <code>loading</code> input.
       </p>
 
       <pre class="demo__state">pending: {{ composer().pending() }}
@@ -83,6 +84,7 @@ export class AsyncPage {
   protected readonly ruleSnippet = SIGNAL_ASYNC_RULE;
 
   protected readonly triggers = ALREADY_PUBLISHED.join('", "');
+  protected readonly unavailable = CHECK_UNAVAILABLE;
 
   protected readonly model = signal(emptyDraft());
 

@@ -1,5 +1,5 @@
-import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
-import { delay, of } from 'rxjs';
+import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { delay, of, switchMap, throwError, timer } from 'rxjs';
 
 /**
  * Canned backend so the async-validation demos work with no server.
@@ -16,6 +16,15 @@ export const ALREADY_PUBLISHED = [
   'behind the scenes',
 ];
 
+/**
+ * Type this and the *check itself* fails (503) instead of answering.
+ *
+ * Without it, `onError` is unreachable in the demo — and "what does the form do
+ * when the validator can't reach the server" is the question that actually gets
+ * asked in review.
+ */
+export const CHECK_UNAVAILABLE = 'server is down';
+
 export const DUPLICATE_CHECK_URL = '/api/duplicate-check';
 
 export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
@@ -28,6 +37,23 @@ export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
   const fromParams = req.params.get('content');
   const fromUrl = new URL(req.url, 'http://localhost').searchParams.get('content');
   const content = (fromParams ?? fromUrl ?? '').toLowerCase();
+
+  if (content.includes(CHECK_UNAVAILABLE)) {
+    // `delay` does not delay error notifications, so the latency has to come
+    // from a timer the error is switched onto.
+    return timer(700).pipe(
+      switchMap(() =>
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 503,
+              statusText: 'Service Unavailable',
+              url: req.url,
+            }),
+        ),
+      ),
+    );
+  }
 
   const duplicate = ALREADY_PUBLISHED.some((phrase) => content.includes(phrase));
 

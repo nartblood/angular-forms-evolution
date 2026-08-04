@@ -126,7 +126,7 @@ const MAX_FIRST_COMMENT_LENGTH = 20;
         </div>
 
         <div class="actions">
-          <ap-button [disabled]="composer().invalid()">
+          <ap-button (click)="composer().markAsTouched()">
             {{ 'composer.submit' | translate }}
           </ap-button>
         </div>

@@ -1,6 +1,6 @@
-import { Component, Injector, signal } from '@angular/core';
+import { Component, Injector, input, linkedSignal, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { form, minLength, required } from '@angular/forms/signals';
+import { FormField, form, minLength, required } from '@angular/forms/signals';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { ChannelPicker } from './shared/channel-picker';
@@ -10,8 +10,10 @@ import { Channel } from './shared/channel';
   imports: [ChannelPicker, ButtonComponent],
   template: `
     <app-channel-picker [selected]="sel()" (toggled)="last.set($event)" />
-    <form (submit)="submitted.set(true)">
+    <form (submit)="onSubmit($event)">
       <ap-button>Go</ap-button>
+      <ap-button type="submit">Submit</ap-button>
+      <button id="native" type="submit">Native</button>
     </form>
   `,
 })
@@ -19,6 +21,11 @@ class Host {
   sel = signal<Channel[]>([]);
   last = signal<Channel | null>(null);
   submitted = signal(false);
+
+  onSubmit(event: Event): void {
+    event.preventDefault();
+    this.submitted.set(true);
+  }
 }
 
 /**
@@ -54,6 +61,35 @@ describe('design system probe', () => {
       type: button!.getAttribute('type'),
       submittedParentForm: fixture.componentInstance.submitted(),
     }).toEqual({ type: 'button', submittedParentForm: false });
+  });
+
+  it('swallows type="submit" rather than forwarding it, with no zone.js', async () => {
+    const fixture = TestBed.createComponent(Host);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    const [plain, submit] = Array.from(el.querySelectorAll<HTMLButtonElement>('ap-button button'));
+
+    // `<ap-button type="submit">` reads like it should work: BaseButtonDirective
+    // picks the host `type` up in ngAfterViewInit, takes it off the host, and
+    // forwards it to the native button through `markForCheck()`. But the
+    // ChangeDetectorRef it marks belongs to the *declaring* view, while
+    // ap-button's own view is OnPush — so with nothing else triggering change
+    // detection inside it, `[attr.type]` is never re-evaluated. The attribute is
+    // gone from the host and never arrives on the button.
+    expect([plain.getAttribute('type'), submit.getAttribute('type')]).toEqual(['button', 'button']);
+    expect(el.querySelector('ap-button[type]')).toBeNull();
+
+    submit.click();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.submitted()).toBe(false);
+
+    // A native button in the same form does submit it — which is why S7 shows
+    // both: `<button type="submit">` for the mechanism, and `requestSubmit()`
+    // for the design-system button.
+    el.querySelector<HTMLButtonElement>('#native')!.click();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.submitted()).toBe(true);
   });
 });
 
@@ -108,8 +144,63 @@ describe('field tree probe', () => {
     expect(field().touched()).toBe(false);
     expect(field().errors()[0].kind).toBe('required');
 
-    // Marking the root cascades down into the handle we already captured.
+    // Marking the root cascades down into the handle we already captured. This is
+    // also what the demo pages' Schedule button does: one call, every error shown.
     composer().markAsTouched();
     expect(field().touched()).toBe(true);
+  });
+});
+
+interface LoadedPost {
+  content: string;
+}
+
+/**
+ * The Signal Forms answer to R9's PAIN 9. The model is a signal, so "initialise
+ * from an input" is a *derivation*: `linkedSignal` re-runs when the input arrives
+ * and stays writable so the user can still type.
+ */
+@Component({
+  imports: [FormField],
+  template: `<input [formField]="composer.content" />`,
+})
+class LoadedComposer {
+  readonly post = input<LoadedPost | undefined>(undefined);
+
+  protected readonly model = linkedSignal<LoadedPost>(() => this.post() ?? { content: '' });
+
+  readonly composer = form(this.model, (path) => minLength(path.content, 5));
+}
+
+describe('initialising a form from an input signal', () => {
+  it('re-derives value and rules, but leaves interaction state to reset()', async () => {
+    const fixture = TestBed.createComponent(LoadedComposer);
+    const { composer } = fixture.componentInstance;
+    await fixture.whenStable();
+
+    fixture.componentRef.setInput('post', { content: 'Hello there' });
+    await fixture.whenStable();
+
+    expect(composer.content().value()).toBe('Hello there');
+    expect(composer.content().valid()).toBe(true);
+    expect((fixture.nativeElement as HTMLElement).querySelector('input')!.value).toBe(
+      'Hello there',
+    );
+
+    composer.content().markAsTouched();
+
+    // Opening another post: no patchValue, no rebuild, no replay of the rules —
+    // the rule re-derives from the new value on its own.
+    fixture.componentRef.setInput('post', { content: 'tiny' });
+    await fixture.whenStable();
+
+    expect(composer.content().value()).toBe('tiny');
+    expect(composer.content().errors()[0].kind).toBe('minLength');
+
+    // The honest half: re-deriving the model does not un-touch anything, so a
+    // "fresh form" still needs an explicit reset().
+    expect(composer.content().touched()).toBe(true);
+    composer().reset();
+    expect(composer.content().touched()).toBe(false);
   });
 });

@@ -149,10 +149,15 @@
       <span class="field__hint">Instagram or LinkedIn only</span>
     }
 
+    <!-- Both buttons only navigate: `?postId=…` is bound to an input signal, and
+         an effect is what pushes it into the control tree. -->
     <div class="actions">
       <ap-button (click)="formEl.requestSubmit()">Schedule</ap-button>
-      <ap-button [config]="{ style: 'stroked', color: 'grey' }" (click)="loadExisting()">
-        Load existing draft
+      <ap-button [config]="{ style: 'stroked', color: 'grey' }" (click)="openPost('draft-42')">
+        Open draft-42
+      </ap-button>
+      <ap-button [config]="{ style: 'stroked', color: 'grey' }" (click)="openPost('draft-77')">
+        Open draft-77
       </ap-button>
     </div>
   </form>
@@ -162,19 +167,24 @@
   <app-code label="1 · Cross-field rule — on the root group, not the field" [code]="crossFieldSnippet" />
   <app-code label="2 · Async validation, hand-rolled (drop first() and the form hangs)" [code]="asyncSnippet" />
   <app-code label="3 · Loading — suppress events, rebuild the array, replay the rules" [code]="loadingSnippet" />
-  <app-code label="4 · A settled() helper that should not need to exist" [code]="settledSnippet" />
+  <app-code
+    label="4 · …and it can't be declared: an input signal needs an effect to reach the tree"
+    [code]="inputInitSnippet"
+  />
   <app-code label="5 · Server errors that vanish on the next revalidation" [code]="serverErrorSnippet" />
 
   <p class="demo__pain">
     <strong>Try these.</strong>
     <br />• Select X, then paste 300 characters — the error is on the root group, shown under
     <em>content</em> by hand.
-    <br />• Type "behind the scenes" — the async duplicate check runs (700&nbsp;ms), and
-    <code>pending</code> gates submit.
+    <br />• Type "behind the scenes" — the async duplicate check runs (700&nbsp;ms). Type
+    "server is down" and the check itself fails, which is a second
+    <code>catchError</code> branch we had to write.
     <br />• Select Instagram and submit — the server rejects it, and the error is attached with
     <code>setErrors</code>… then disappears as soon as you edit the field again.
-    <br />• Hit <em>Load existing draft</em> — that one button needs <code>patchValue</code>,
-    an array rebuild, and a manual replay of every rule.
+    <br />• Hit <em>Open draft-42</em>, then <em>Open draft-77</em>. The URL is the only input;
+    everything else — <code>patchValue</code>, the array teardown and rebuild, the replay of every
+    rule, <code>markAsPristine</code> — is code we wrote, and it runs again on every arrival.
   </p>
 
   <pre class="demo__state">{{ form.getRawValue() | json }}</pre>

@@ -58,4 +58,24 @@ describe('S7 · submit', () => {
       'content — Content is required',
     ]);
   });
+
+  it('submits from the form’s own submit button, with no handler of ours', async () => {
+    const { fixture, element, shown } = await setup();
+
+    // The whole wiring is `[formRoot]` plus `type="submit"`. Note the selector
+    // only matches the native button: ap-button renders `type="button"`.
+    element.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
+    await fixture.whenStable();
+
+    expect(shown()).toEqual(['Pick at least one channel', 'Content is required']);
+  });
+
+  it('and from ap-button, which has to ask the form to submit itself', async () => {
+    const { fixture, element, shown } = await setup();
+
+    element.querySelector<HTMLButtonElement>('ap-button button')!.click();
+    await fixture.whenStable();
+
+    expect(shown()).toEqual(['Pick at least one channel', 'Content is required']);
+  });
 });

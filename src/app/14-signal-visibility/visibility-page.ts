@@ -95,7 +95,7 @@ import { SIGNAL_VISIBILITY_RULES, SIGNAL_VISIBILITY_TEMPLATE } from './visibilit
         }
 
         <div class="actions">
-          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
+          <ap-button (click)="composer().markAsTouched()">Schedule</ap-button>
         </div>
       </form>
 

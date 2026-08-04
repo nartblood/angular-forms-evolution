@@ -24,9 +24,9 @@ import {
 import {
   REACTIVE_ASYNC_VALIDATOR,
   REACTIVE_CROSS_FIELD,
+  REACTIVE_INPUT_INIT,
   REACTIVE_LOADING,
   REACTIVE_SERVER_ERROR,
-  REACTIVE_SETTLED,
 } from './09-reactive-everything/reactive-snippets';
 import {
   SIGNAL_MINIMAL_FORM,
@@ -50,8 +50,7 @@ import {
 } from './14-signal-visibility/visibility-snippets';
 import { SIGNAL_ASYNC_RULE } from './15-signal-async/async-snippets';
 import {
-  SIGNAL_SUBMIT_ACTION,
-  SIGNAL_SUBMIT_BUTTON,
+  SIGNAL_SUBMIT_FORM,
   SIGNAL_SUBMIT_SUMMARY,
   SIGNAL_SUBMIT_TEMPLATE,
 } from './16-signal-submit/submit-snippets';
@@ -100,7 +99,7 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
 
   ['R9 async validator', REACTIVE_ASYNC_VALIDATOR, '09-reactive-everything/reactive-page.ts'],
   ['R9 loading', REACTIVE_LOADING, '09-reactive-everything/reactive-page.ts'],
-  ['R9 settled()', REACTIVE_SETTLED, '09-reactive-everything/reactive-page.ts'],
+  ['R9 input init', REACTIVE_INPUT_INIT, '09-reactive-everything/reactive-page.ts'],
   ['R9 server error', REACTIVE_SERVER_ERROR, '09-reactive-everything/reactive-page.ts'],
   ['R9 cross-field', REACTIVE_CROSS_FIELD, '09-reactive-everything/reactive-page.ts'],
 
@@ -123,9 +122,8 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
 
   ['S6 rule', SIGNAL_ASYNC_RULE, '15-signal-async/async-page.ts'],
 
-  ['S7 action', SIGNAL_SUBMIT_ACTION, '16-signal-submit/submit-page.ts'],
-  ['S7 formRoot', SIGNAL_SUBMIT_TEMPLATE, '16-signal-submit/submit-page.ts'],
-  ['S7 button', SIGNAL_SUBMIT_BUTTON, '16-signal-submit/submit-page.ts'],
+  ['S7 whole form', SIGNAL_SUBMIT_FORM, '16-signal-submit/submit-page.ts'],
+  ['S7 template', SIGNAL_SUBMIT_TEMPLATE, '16-signal-submit/submit-page.ts'],
   ['S7 summary', SIGNAL_SUBMIT_SUMMARY, '16-signal-submit/submit-page.ts'],
 
   ['S8 usage', SIGNAL_SCHEMAS_USAGE, '17-signal-schemas/schemas-page.ts'],

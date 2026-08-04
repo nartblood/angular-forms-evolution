@@ -13,8 +13,7 @@ import { emptyDraft } from '../shared/post-draft';
 import { PublishApi } from '../shared/publish-api';
 import { CodePanel } from '../shared/code-panel';
 import {
-  SIGNAL_SUBMIT_ACTION,
-  SIGNAL_SUBMIT_BUTTON,
+  SIGNAL_SUBMIT_FORM,
   SIGNAL_SUBMIT_SUMMARY,
   SIGNAL_SUBMIT_TEMPLATE,
 } from './submit-snippets';
@@ -27,8 +26,16 @@ import {
  * `#fd="ngForm"` + `fd.submitted` + `markAllAsTouched()` + the `ViewChild`
  * needed to reset `submitted` afterwards.
  *
- * Note: `ap-button` renders `type="button"`, so it can't submit a form on its
- * own — `requestSubmit()` fires the native submit event that `[formRoot]` hooks.
+ * A native `<button type="submit">` needs nothing else: the directive listens for
+ * the form's own submit event. `ap-button` can't be that button — it renders
+ * `type="button"`, and the host `type` attribute it appears to accept is taken off
+ * the host and then lost, because it is forwarded through `markForCheck()` on the
+ * declaring view while `ap-button`'s own view is OnPush (pinned in
+ * `probe.spec.ts`). So it asks the form to submit itself.
+ *
+ * Note `submit()` throws if the form has no `submission.action` — which is why
+ * the earlier pages, which have no action, reveal their errors with
+ * `composer().markAsTouched()` instead of a real submit.
  */
 @Component({
   selector: 'app-signal-submit-page',
@@ -91,20 +98,24 @@ import {
           }
         </ap-form-field>
 
+        <!-- Neither button is disabled while the form is invalid: submitting is
+             how you find out what is wrong. The loading input already blocks a
+             second submit, because ap-button sets attr.disabled from it. -->
         <div class="actions">
-          <ap-button
-            [loading]="composer().submitting()"
-            [disabled]="composer().submitting()"
-            (click)="formEl.requestSubmit()"
-          >
-            Schedule
+          <!-- The mechanism: a plain submit button, and the form does the rest. -->
+          <button type="submit">Schedule</button>
+
+          <!-- Our design system: ap-button renders type="button" and swallows a
+               host type attribute (probe.spec.ts), so it asks the form to submit
+               itself instead. Same [formRoot], same submission. -->
+          <ap-button [loading]="composer().submitting()" (click)="formEl.requestSubmit()">
+            Schedule (ap-button)
           </ap-button>
         </div>
       </form>
 
-      <app-code label="The submit action" [code]="actionSnippet" />
-      <app-code label="formRoot does the rest" lang="html" [code]="templateSnippet" />
-      <app-code label="ap-button needs requestSubmit()" lang="html" [code]="buttonSnippet" />
+      <app-code label="The whole form: state, rules, submission" [code]="formSnippet" />
+      <app-code label="The template — the form submits itself" lang="html" [code]="templateSnippet" />
       <app-code label="The form-level summary" [code]="summarySnippet" />
 
       <p class="demo__pain demo__win">
@@ -126,9 +137,8 @@ channel errors: {{ composer.channels().errors() | json }}</pre>
   `,
 })
 export class SubmitPage {
-  protected readonly actionSnippet = SIGNAL_SUBMIT_ACTION;
+  protected readonly formSnippet = SIGNAL_SUBMIT_FORM;
   protected readonly templateSnippet = SIGNAL_SUBMIT_TEMPLATE;
-  protected readonly buttonSnippet = SIGNAL_SUBMIT_BUTTON;
   protected readonly summarySnippet = SIGNAL_SUBMIT_SUMMARY;
 
   private readonly api = inject(PublishApi);

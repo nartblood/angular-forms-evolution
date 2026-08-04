@@ -1,6 +1,7 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, effect, inject, input } from '@angular/core';
 import { JsonPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -15,7 +16,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Observable, catchError, filter, first, firstValueFrom, map, of, switchMap, tap, timer } from 'rxjs';
+import { Observable, catchError, first, map, of, switchMap, tap, timer } from 'rxjs';
 
 import { InputDirective } from '@agorapulse/ui-components/input';
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
@@ -42,9 +43,9 @@ import { CodePanel } from '../shared/code-panel';
 import {
   REACTIVE_ASYNC_VALIDATOR,
   REACTIVE_CROSS_FIELD,
+  REACTIVE_INPUT_INIT,
   REACTIVE_LOADING,
   REACTIVE_SERVER_ERROR,
-  REACTIVE_SETTLED,
 } from './reactive-snippets';
 
 // ---------------------------------------------------------------------------
@@ -114,13 +115,22 @@ export class ReactivePage {
   protected readonly crossFieldSnippet = REACTIVE_CROSS_FIELD;
   protected readonly asyncSnippet = REACTIVE_ASYNC_VALIDATOR;
   protected readonly loadingSnippet = REACTIVE_LOADING;
-  protected readonly settledSnippet = REACTIVE_SETTLED;
+  protected readonly inputInitSnippet = REACTIVE_INPUT_INIT;
   protected readonly serverErrorSnippet = REACTIVE_SERVER_ERROR;
 
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
   private readonly api = inject(PublishApi);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  /**
+   * The screen is opened on an existing post: `/reactive?postId=draft-42`, bound
+   * by `withComponentInputBinding()`. PAIN 9 lives in the constructor below —
+   * a control tree cannot be *declared* from this.
+   */
+  readonly postId = input<string | undefined>(undefined);
 
   protected readonly channels = CHANNELS;
   protected readonly channelLabel = CHANNEL_LABEL;
@@ -167,6 +177,21 @@ export class ReactivePage {
     // ...and the initial state is not derived, so it must be replayed by hand.
     this.applyPublishModeRules(this.form.controls.publishMode.value);
     this.applyChannelRules(this.form.controls.channels.value);
+
+    // -----------------------------------------------------------------------
+    // PAIN 9: the control tree was built in a field initializer, before the
+    // input had a value — so initialising from an input cannot be declared. It
+    // is a second code path, triggered by an effect, that reconciles a tree
+    // which already exists. `ngOnInit` will not do either: opening another post
+    // changes the input without recreating the component.
+    // -----------------------------------------------------------------------
+    effect(() => {
+      const postId = this.postId();
+
+      if (postId) {
+        this.initialiseFrom(this.fetch(postId));
+      }
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -247,14 +272,27 @@ export class ReactivePage {
     this.media.removeAt(index);
   }
 
+  /** Stands in for the request the route id would trigger. */
+  private fetch(postId: string): PostDraft {
+    const draft = existingDraft();
+
+    // A second post, so re-initialising is observable: fewer channels, no media,
+    // no first comment — the FormArray has to shrink, not just take new values.
+    return postId === 'draft-77'
+      ? { ...draft, channels: ['x'], publishMode: 'now', scheduledAt: '', media: [], firstComment: '' }
+      : draft;
+  }
+
+  protected openPost(postId: string): void {
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { postId } });
+  }
+
   // -------------------------------------------------------------------------
   // PAIN 8: loading. Suppress events so our own rules don't corrupt the load,
   // which means the rules didn't run, so replay them imperatively. Two code
   // paths, one intent. And `patchValue` never creates FormArray controls.
   // -------------------------------------------------------------------------
-  protected loadExisting(): void {
-    const draft = existingDraft();
-
+  private initialiseFrom(draft: PostDraft): void {
     this.form.patchValue(draft, { emitEvent: false });
 
     this.media.clear({ emitEvent: false });
@@ -273,24 +311,14 @@ export class ReactivePage {
     this.form.updateValueAndValidity();
   }
 
-  /** PAIN 9: "submit once validation settles" is universal, and unimplemented. */
-  private async settled(): Promise<void> {
-    if (!this.form.pending) return;
-    await firstValueFrom(
-      this.form.statusChanges.pipe(
-        filter((status) => status !== 'PENDING'),
-        first(),
-      ),
-    );
-  }
-
   protected async submit(directive: FormGroupDirective): Promise<void> {
     this.serverError = null;
     this.saved = null;
 
-    await this.settled();
-
-    if (this.form.invalid) {
+    // A form whose async validator is still running is neither valid nor invalid:
+    // `pending` is a third status, and submit has to know about it. There is no
+    // "await the form" — this refuses and asks the user to try again.
+    if (this.form.pending || this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }

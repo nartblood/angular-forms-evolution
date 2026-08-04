@@ -90,7 +90,7 @@ import { SIGNAL_ARRAYS_LIST_RULE, SIGNAL_ARRAYS_MUTATION, SIGNAL_ARRAYS_PER_ITEM
         </div>
 
         <div class="actions">
-          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
+          <ap-button (click)="composer().markAsTouched()">Schedule</ap-button>
         </div>
       </form>
 

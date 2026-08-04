@@ -145,7 +145,7 @@ import {
         </ap-form-field>
 
         <div class="actions">
-          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
+          <ap-button (click)="composer().markAsTouched()">Schedule</ap-button>
           <ap-button [config]="{ style: 'stroked', color: 'blue' }" (click)="loadExisting()">
             Load existing draft
           </ap-button>

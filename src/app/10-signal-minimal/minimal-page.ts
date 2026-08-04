@@ -74,8 +74,11 @@ import {
           }
         </ap-form-field>
 
+        <!-- Deliberately never disabled: a disabled button hides which field is
+             wrong. markAsTouched() on the ROOT cascades to every descendant, so
+             one click reveals every error. S7 gets that from submit() itself. -->
         <div class="actions">
-          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
+          <ap-button (click)="composer().markAsTouched()">Schedule</ap-button>
         </div>
       </form>
 

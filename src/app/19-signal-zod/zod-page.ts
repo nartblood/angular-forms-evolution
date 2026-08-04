@@ -113,7 +113,7 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
         }
 
         <div class="actions">
-          <ap-button [disabled]="composer().invalid()">Schedule</ap-button>
+          <ap-button (click)="composer().markAsTouched()">Schedule</ap-button>
         </div>
       </form>
 

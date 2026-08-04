@@ -26,7 +26,7 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | `/template-driven` | `ngModel` | the five-minute form, and where it stops scaling |
 | `/reactive/minimal` | `FormGroup` / `FormControl` | the baseline: a control tree, bound by name — read this before the pain pages |
 | `/reactive/conditional` | | one rule, and the `setValidators` + subscription + priming call it needs |
-| `/reactive` | | ten mechanisms every project reimplements, marked `PAIN n` in the source |
+| `/reactive` | | ten mechanisms every project reimplements, marked `PAIN n` in the source. `?postId=draft-42` opens it on an existing post — the input signal an effect has to push into the control tree |
 | `/signal/minimal` | Signal Forms | the model *is* the form (pairs with `/reactive/minimal`) |
 | `/signal/conditional` | | `required({when})` instead of `setValidators` + `updateValueAndValidity` |
 | `/signal/cross-field` | | `valueOf()` — the error lands on the field that renders it |
@@ -39,7 +39,13 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | `/signal/zod` | | **bonus** — the same rules as Zod via `validateStandardSchema` |
 
 The async demos run against an `HttpInterceptorFn` that fakes the backend, so
-`validateHttp` performs a real request and the code stays production-shaped.
+`validateHttp` performs a real request and the code stays production-shaped. Typing
+`server is down` makes the check itself fail with a 503, which is the only way to reach the
+`onError` branch on purpose.
+
+No **Schedule** button is disabled while its form is invalid — clicking it is how you make the
+errors appear. On the Signal Forms pages that is `composer().markAsTouched()`, which cascades to
+every descendant; S7 gets the same effect from a real `submit()`.
 
 ## Running it
 
@@ -83,12 +89,18 @@ blocker it looked like.
 actions go through `formEl.requestSubmit()` (see the `[formRoot]` page) or a `(click)` handler.
 `probe.spec.ts` pins this down, so a future ui-components release that changes it will fail loudly.
 
+`<ap-button type="submit">` looks like the way out, and it isn't: `BaseButtonDirective` picks the
+host `type` up in `ngAfterViewInit`, **removes it from the host**, and forwards it to the native
+button through `markForCheck()` on the *declaring* view — while `ap-button`'s own view is OnPush. In
+a zoneless app nothing re-evaluates `[attr.type]`, so the attribute is silently dropped and the
+button stays `type="button"`. Making `hostType` a signal would fix it; until then, `requestSubmit()`.
+
 `apInput` is a directive on a native `<input>` rather than a wrapper component, so the same markup
 composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapter layer.
 
 ## Tests
 
-`npm test` — 93 tests, in four kinds:
+`npm test` — 101 tests, in these kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.
@@ -99,16 +111,23 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
   run of lines from its source file. `?raw` source imports would remove the copy entirely, but
   `@angular/build`'s esbuild ignores the suffix, so the copy is guarded instead.
 - **Design system contracts** (`probe.spec.ts`, `conditional-page.spec.ts`,
-  `i18n-page.spec.ts`): `ap-checkbox` emits `(change)`, `ap-button` is `type="button"`,
-  `ap-radio` writes back through `[formField]`, and error messages re-translate on language
-  switch. Each pins down something that would otherwise fail silently on stage.
+  `i18n-page.spec.ts`): `ap-checkbox` emits `(change)`, `ap-button` is `type="button"` and drops a
+  host `type="submit"`, `ap-radio` writes back through `[formField]`, and error messages
+  re-translate on language switch. Each pins down something that would otherwise fail silently on
+  stage.
+- **Initialising from an input** (`reactive-page.spec.ts`, the last block of `probe.spec.ts`): the
+  reactive form needs an effect, a `patchValue`, a `FormArray` rebuild and a replay of every rule on
+  every arrival; the Signal Forms model is a `linkedSignal`, so value and rules re-derive — and
+  touched state still needs an explicit `reset()`.
+- **Async failure** (`async-page.spec.ts`): a duplicate the server reports, and a check the server
+  can't answer — the 503 lands in `onError`, so the field is invalid rather than quietly valid.
 - **Translation timing** (`shared/i18n.spec.ts`): a `message` function puts translated, interpolated
   copy on the error; it does *not* re-translate on a live language change; and reading a language
   signal inside it makes it. Three tests, because the middle one is the caveat of the whole
   approach.
-- **Error display** (`shared/field-error.spec.ts`, `submit-page.spec.ts`): errors stay hidden
-  until the field is touched, submitting reveals every field at once (`submit()` calls
-  `markAsTouched()`, which cascades), `reset()` hides them again, and `errorSummary()` names the
+- **Error display** (`submit-page.spec.ts`): errors stay hidden until the field is touched,
+  submitting reveals every field at once (`submit()` calls `markAsTouched()`, which cascades), both
+  the native submit button and the `requestSubmit()` path get there, and `errorSummary()` names the
   field each error came from.
 
 ## Caveats
