@@ -85,20 +85,26 @@ written for `ngModel` / `formControlName`, but it also binds to Signal Forms' `[
 verified rather than assumed — and it means migrating our composite components is not the
 blocker it looked like.
 
-**2. `ap-button` renders `type="button"`** and does **not** submit its parent form. Submit
-actions go through `formEl.requestSubmit()` (see the `[formRoot]` page) or a `(click)` handler.
-`probe.spec.ts` pins this down, so a future ui-components release that changes it will fail loudly.
+**2. `<ap-button type="submit">` loses its `type` on the first render.** `BaseButtonDirective` reads
+the host `type` in `ngAfterViewInit`, **removes it from the host**, stores it on a plain property and
+calls `markForCheck()`. That mark is lost — `ap-button`'s own OnPush view was already refreshed in
+the same pass — so the inner `<button>` stays `type="button"` until *something else* checks that
+view.
 
-`<ap-button type="submit">` looks like the way out, and it isn't: `BaseButtonDirective` picks the
-host `type` up in `ngAfterViewInit`, **removes it from the host**, and forwards it to the native
-button through `markForCheck()` on the *declaring* view — while `ap-button`'s own view is OnPush. In
-a zoneless app nothing re-evaluates `[attr.type]`, so the attribute is silently dropped and the
-button stays `type="button"`. Making `hostType` a signal would fix it.
+An input change does it, and then it sticks. In the platform this is invisible: zone.js runs a CD
+pass on the first event that touches the page, and `[config]="{…}"` is a fresh object literal on
+every parent check, so the type has landed long before anyone clicks — `archie-login-form` submits
+fine. **Zoneless, the click itself is the first check, one click too late:** the first click does
+nothing, every click after it works.
 
-Until then there are two working triggers, both live on `/signal/submit`: `formEl.requestSubmit()`,
-which fires the submit event `[formRoot]` listens for, and `submit(this.composer)` called from
-TypeScript — the same function the directive calls, reusing the `submission` declared on the form.
-The second one needs no `[formRoot]` at all, which is the shape a view-model wants.
+`probe.spec.ts` pins that sequence step by step. `shared/ap-button-submit.ts` is the workaround this
+repo uses — a selector-only directive on `ap-button[type="submit"]` that sets the attribute after
+render, so the markup stays exactly what the platform writes. **The real fix belongs upstream:
+`hostType` should be a signal** (or, better, `type` should be an `input`). Delete the directive then.
+
+The second trigger, also live on `/signal/submit`, sidesteps all of it: `submit(this.composer)` from
+TypeScript — the same function the directive calls, reusing the `submission` declared on the form,
+with no `[formRoot]` needed. That's the shape a view-model wants.
 
 `apInput` is a directive on a native `<input>` rather than a wrapper component, so the same markup
 composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapter layer.
@@ -116,10 +122,10 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
   run of lines from its source file. `?raw` source imports would remove the copy entirely, but
   `@angular/build`'s esbuild ignores the suffix, so the copy is guarded instead.
 - **Design system contracts** (`probe.spec.ts`, `conditional-page.spec.ts`,
-  `i18n-page.spec.ts`): `ap-checkbox` emits `(change)`, `ap-button` is `type="button"` and drops a
-  host `type="submit"`, `ap-radio` writes back through `[formField]`, and error messages
-  re-translate on language switch. Each pins down something that would otherwise fail silently on
-  stage.
+  `i18n-page.spec.ts`): `ap-checkbox` emits `(change)`, `ap-button` is `type="button"` and loses a
+  forwarded `type="submit"` until its view is checked again, `ap-radio` writes back through
+  `[formField]`, and error messages re-translate on language switch. Each pins down something that
+  would otherwise fail silently on stage.
 - **Initialising from an input** (`reactive-page.spec.ts`, the last block of `probe.spec.ts`): the
   reactive form needs an effect, a `patchValue`, a `FormArray` rebuild and a replay of every rule on
   every arrival; the Signal Forms model is a `linkedSignal`, so value and rules re-derive — and

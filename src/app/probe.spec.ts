@@ -12,7 +12,7 @@ import { Channel } from './shared/channel';
     <app-channel-picker [selected]="sel()" (toggled)="last.set($event)" />
     <form (submit)="onSubmit($event)">
       <ap-button>Go</ap-button>
-      <ap-button type="submit">Submit</ap-button>
+      <ap-button type="submit" [loading]="loading()">Submit</ap-button>
       <button id="native" type="submit">Native</button>
     </form>
   `,
@@ -21,6 +21,7 @@ class Host {
   sel = signal<Channel[]>([]);
   last = signal<Channel | null>(null);
   submitted = signal(false);
+  loading = signal(false);
 
   onSubmit(event: Event): void {
     event.preventDefault();
@@ -63,31 +64,37 @@ describe('design system probe', () => {
     }).toEqual({ type: 'button', submittedParentForm: false });
   });
 
-  it('swallows type="submit" rather than forwarding it, with no zone.js', async () => {
+  it('loses a forwarded type="submit" until its view is checked again', async () => {
     const fixture = TestBed.createComponent(Host);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
 
     const [plain, submit] = Array.from(el.querySelectorAll<HTMLButtonElement>('ap-button button'));
 
-    // `<ap-button type="submit">` reads like it should work: BaseButtonDirective
-    // picks the host `type` up in ngAfterViewInit, takes it off the host, and
-    // forwards it to the native button through `markForCheck()`. But the
-    // ChangeDetectorRef it marks belongs to the *declaring* view, while
-    // ap-button's own view is OnPush — so with nothing else triggering change
-    // detection inside it, `[attr.type]` is never re-evaluated. The attribute is
-    // gone from the host and never arrives on the button.
+    // BaseButtonDirective picks the host `type` up in ngAfterViewInit, takes it
+    // off the host, stores it on a plain property and calls markForCheck(). That
+    // mark is lost — ap-button's own OnPush view was already refreshed in the same
+    // pass — so the attribute is gone from the host and not yet on the button.
     expect([plain.getAttribute('type'), submit.getAttribute('type')]).toEqual(['button', 'button']);
     expect(el.querySelector('ap-button[type]')).toBeNull();
+    expect(fixture.componentInstance.loading()).toBe(false);
+
+    // Another whenStable() doesn't help: nothing has dirtied that view.
+    await fixture.whenStable();
+    expect(submit.getAttribute('type')).toBe('button');
+
+    // An input change does, and then it sticks. In a zoned app the first event to
+    // reach the page provides this (and `[config]="{…}"` is a fresh object literal
+    // on every parent check), which is why the platform's forms submit fine.
+    // Zoneless, the click itself is the first check — one click too late, hence
+    // `ApButtonSubmit`.
+    fixture.componentInstance.loading.set(true);
+    await fixture.whenStable();
+    fixture.componentInstance.loading.set(false);
+    await fixture.whenStable();
+    expect(submit.getAttribute('type')).toBe('submit');
 
     submit.click();
-    await fixture.whenStable();
-    expect(fixture.componentInstance.submitted()).toBe(false);
-
-    // A native button in the same form does submit it, which is the control case:
-    // the form is fine, the button is the problem. S7 therefore triggers
-    // submission either with `requestSubmit()` or by calling `submit()` directly.
-    el.querySelector<HTMLButtonElement>('#native')!.click();
     await fixture.whenStable();
     expect(fixture.componentInstance.submitted()).toBe(true);
   });

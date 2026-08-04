@@ -56,16 +56,15 @@ protected readonly composer = form(
 );`;
 
 /**
- * `[formRoot]` on the form is the whole wiring: no `(ngSubmit)`, no `#fd="ngForm"`,
- * no `submitted` flag.
+ * `[formRoot]` plus `type="submit"` is the whole wiring — the same shape as
+ * `archie-login-form` in the platform. No `(ngSubmit)`, no `#fd="ngForm"`, no
+ * `submitted` flag, no click handler.
  *
- * What it listens for is the native submit event — so with a plain
- * `<button type="submit">` there would be nothing else to write. `ap-button` cannot
- * be that button: it renders `type="button"`, and the host `type` attribute it
- * looks like it accepts is removed from the host and then dropped
- * (`probe.spec.ts`). Hence the two triggers below.
+ * (`ApButtonSubmit` in this repo's `imports` is a workaround for a ui-components
+ * bug, not part of the API: the forwarded `type` is lost until `ap-button`'s view
+ * is checked again, which zone.js hides and zoneless does not.)
  */
-export const SIGNAL_SUBMIT_TEMPLATE = `<form [formRoot]="composer" #formEl novalidate>
+export const SIGNAL_SUBMIT_TEMPLATE = `<form [formRoot]="composer" novalidate>
   <div class="field">
     <label>Channels</label>
     <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
@@ -92,13 +91,14 @@ export const SIGNAL_SUBMIT_TEMPLATE = `<form [formRoot]="composer" #formEl noval
        how you find out what is wrong. The loading input already blocks a
        second submit, because ap-button sets attr.disabled from it.
 
-       Two triggers, one submission. type="submit" on ap-button is not an
-       option: it renders type="button" and swallows a host type attribute
-       (pinned in probe.spec.ts). -->
+       Two triggers, one submission. Both are ap-buttons. -->
   <div class="actions">
-    <!-- 1 · through the form: requestSubmit() fires the native submit
-         event, which is what [formRoot] listens for. -->
-    <ap-button [loading]="composer().submitting()" (click)="formEl.requestSubmit()">
+    <!-- 1 · through the form: type="submit", nothing else. -->
+    <ap-button
+      type="submit"
+      [config]="{ style: 'primary', color: 'blue' }"
+      [loading]="composer().submitting()"
+    >
       Schedule
     </ap-button>
 

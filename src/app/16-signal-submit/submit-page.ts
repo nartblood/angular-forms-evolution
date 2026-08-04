@@ -7,6 +7,7 @@ import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
 import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
+import { ApButtonSubmit } from '../shared/ap-button-submit';
 import { Channel, toggleChannel } from '../shared/channel';
 import { ChannelPicker } from '../shared/channel-picker';
 import { emptyDraft } from '../shared/post-draft';
@@ -27,14 +28,14 @@ import {
  * `#fd="ngForm"` + `fd.submitted` + `markAllAsTouched()` + the `ViewChild`
  * needed to reset `submitted` afterwards.
  *
- * Two ways to trigger it, both shown live. A native `<button type="submit">` would
- * need nothing at all, but `ap-button` cannot be that button: it renders
- * `type="button"`, and the host `type` attribute it appears to accept is taken off
- * the host and then lost, because it is forwarded through `markForCheck()` on the
- * declaring view while `ap-button`'s own view is OnPush (pinned in
- * `probe.spec.ts`). So either it asks the form to submit itself with
- * `requestSubmit()`, or the page calls `submit(this.composer)` directly — the same
- * function `[formRoot]` calls, with the same declared submission.
+ * Two ways to trigger it, both shown live and both used in the platform:
+ * `<ap-button type="submit">` inside the form (see `archie-login-form`), and
+ * `submit(this.composer)` called from TypeScript — the same function `[formRoot]`
+ * calls, with the same declared submission, and no form event involved.
+ *
+ * The first one needs `ApButtonSubmit` here: ui-components loses the forwarded
+ * `type` until `ap-button`'s view is checked again, which a zoned app gets for free
+ * and a zoneless one does not. See that directive for the mechanism.
  *
  * Note `submit()` throws if the form has no `submission.action` — which is why
  * the earlier pages, which have no action, reveal their errors with
@@ -49,6 +50,7 @@ import {
     FormFieldComponent,
     FormMessageComponent,
     ButtonComponent,
+    ApButtonSubmit,
     ChannelPicker,
     JsonPipe,
     CodePanel,
@@ -78,7 +80,7 @@ import {
         </div>
       }
 
-      <form [formRoot]="composer" #formEl novalidate>
+      <form [formRoot]="composer" novalidate>
         <div class="field">
           <label>Channels</label>
           <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
@@ -105,13 +107,14 @@ import {
              how you find out what is wrong. The loading input already blocks a
              second submit, because ap-button sets attr.disabled from it.
 
-             Two triggers, one submission. type="submit" on ap-button is not an
-             option: it renders type="button" and swallows a host type attribute
-             (pinned in probe.spec.ts). -->
+             Two triggers, one submission. Both are ap-buttons. -->
         <div class="actions">
-          <!-- 1 · through the form: requestSubmit() fires the native submit
-               event, which is what [formRoot] listens for. -->
-          <ap-button [loading]="composer().submitting()" (click)="formEl.requestSubmit()">
+          <!-- 1 · through the form: type="submit", nothing else. -->
+          <ap-button
+            type="submit"
+            [config]="{ style: 'primary', color: 'blue' }"
+            [loading]="composer().submitting()"
+          >
             Schedule
           </ap-button>
 

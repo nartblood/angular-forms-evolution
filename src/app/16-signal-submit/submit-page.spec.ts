@@ -59,11 +59,18 @@ describe('S7 · submit', () => {
     ]);
   });
 
-  it('submits through the form, from ap-button asking it to', async () => {
+  it('submits from ap-button type="submit" on the very first click', async () => {
     const { fixture, element, shown } = await setup();
 
-    // requestSubmit() fires the native submit event [formRoot] listens for.
-    element.querySelectorAll<HTMLButtonElement>('ap-button button')[0].click();
+    const button = element.querySelectorAll<HTMLButtonElement>('ap-button button')[0];
+
+    // `ApButtonSubmit` is what makes this true on the *first* click — without it
+    // the inner button is still `type="button"` until its view is checked again
+    // (see probe.spec.ts). This asserts the attribute and the outcome, so the
+    // workaround can't quietly stop working.
+    expect(button.getAttribute('type')).toBe('submit');
+
+    button.click();
     await fixture.whenStable();
 
     expect(shown()).toEqual(['Pick at least one channel', 'Content is required']);
