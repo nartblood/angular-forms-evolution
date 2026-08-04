@@ -105,7 +105,7 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
 
 ## Tests
 
-`npm test` — 102 tests, in these kinds:
+`npm test` — 105 tests, in these kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.
@@ -126,6 +126,11 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
   touched state still needs an explicit `reset()`.
 - **Async failure** (`async-page.spec.ts`): a duplicate the server reports, and a check the server
   can't answer — the 503 lands in `onError`, so the field is invalid rather than quietly valid.
+- **Aggregation** (`arrays-page.spec.ts`): on a field with children, `invalid()` counts every
+  descendant while `errors()` is own-only. Gating a parent's message on `invalid()` renders a block
+  for an error that lives on a child, and `errors()[0].message` throws mid-render — which kills the
+  rest of the page's messages, so the symptom is "submitting shows nothing". Both list-level displays
+  are gated on `errors().length` and asserted here.
 - **Translation timing** (`shared/i18n.spec.ts`): a `message` function puts translated, interpolated
   copy on the error; it does *not* re-translate on a live language change; and reading a language
   signal inside it makes it. Three tests, because the middle one is the caveat of the whole

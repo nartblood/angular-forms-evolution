@@ -49,7 +49,11 @@ import { SIGNAL_ARRAYS_LIST_RULE, SIGNAL_ARRAYS_MUTATION, SIGNAL_ARRAYS_PER_ITEM
         <div class="field">
           <label>Channels</label>
           <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
-          @if (composer.media().touched() && composer.media().invalid()) {
+          <!-- Gated on errors(), NOT on invalid(): invalid() aggregates every
+               descendant, so an empty media row would open this block while the
+               list's own errors() is empty — and errors()[0].message would throw,
+               taking the rest of the render with it. errors() is own-only. -->
+          @if (composer.media().touched() && composer.media().errors().length > 0) {
             <ap-form-message
               messageType="error"
               [message]="composer.media().errors()[0].message ?? 'Invalid'"
@@ -103,6 +107,14 @@ import { SIGNAL_ARRAYS_LIST_RULE, SIGNAL_ARRAYS_MUTATION, SIGNAL_ARRAYS_PER_ITEM
         every new item already has its rules from <code>applyEach</code>. Compare with the reactive
         page, where loading a draft needs <code>media.clear()</code> followed by a
         <code>push()</code> per item, each with its validators re-specified.
+      </p>
+
+      <p class="demo__pain">
+        <strong>One trap, on this page specifically.</strong> On a field with children,
+        <code>invalid()</code> is aggregated — it is true when <em>any</em> descendant is invalid —
+        while <code>errors()</code> is that field's own errors only. Gate a parent's message on
+        <code>errors().length</code>: gating it on <code>invalid()</code> renders a message block for
+        an error that lives on a child, and <code>errors()[0].message</code> then throws mid-render.
       </p>
 
       <pre class="demo__state">{{ model().media | json }}</pre>

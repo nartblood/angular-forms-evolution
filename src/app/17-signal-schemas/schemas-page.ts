@@ -122,7 +122,9 @@ import {
               </ap-button>
             </div>
           }
-          @if (composer.media().invalid()) {
+          <!-- errors(), not invalid(): invalid() includes the items' own errors,
+               so an incomplete row would open this block with nothing to show. -->
+          @if (composer.media().errors().length > 0) {
             <ap-form-message
               messageType="error"
               [message]="composer.media().errors()[0].message ?? 'Invalid'"
