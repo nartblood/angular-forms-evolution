@@ -51,6 +51,7 @@ import {
 import { SIGNAL_ASYNC_RULE } from './15-signal-async/async-snippets';
 import {
   SIGNAL_SUBMIT_FORM,
+  SIGNAL_SUBMIT_PROGRAMMATIC,
   SIGNAL_SUBMIT_SUMMARY,
   SIGNAL_SUBMIT_TEMPLATE,
 } from './16-signal-submit/submit-snippets';
@@ -124,6 +125,7 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
 
   ['S7 whole form', SIGNAL_SUBMIT_FORM, '16-signal-submit/submit-page.ts'],
   ['S7 template', SIGNAL_SUBMIT_TEMPLATE, '16-signal-submit/submit-page.ts'],
+  ['S7 programmatic', SIGNAL_SUBMIT_PROGRAMMATIC, '16-signal-submit/submit-page.ts'],
   ['S7 summary', SIGNAL_SUBMIT_SUMMARY, '16-signal-submit/submit-page.ts'],
 
   ['S8 usage', SIGNAL_SCHEMAS_USAGE, '17-signal-schemas/schemas-page.ts'],

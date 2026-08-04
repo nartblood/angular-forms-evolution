@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { JsonPipe } from '@angular/common';
-import { FormField, FormRoot, form, required, validate } from '@angular/forms/signals';
+import { FormField, FormRoot, form, required, submit, validate } from '@angular/forms/signals';
 
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
 import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
@@ -14,6 +14,7 @@ import { PublishApi } from '../shared/publish-api';
 import { CodePanel } from '../shared/code-panel';
 import {
   SIGNAL_SUBMIT_FORM,
+  SIGNAL_SUBMIT_PROGRAMMATIC,
   SIGNAL_SUBMIT_SUMMARY,
   SIGNAL_SUBMIT_TEMPLATE,
 } from './submit-snippets';
@@ -26,12 +27,14 @@ import {
  * `#fd="ngForm"` + `fd.submitted` + `markAllAsTouched()` + the `ViewChild`
  * needed to reset `submitted` afterwards.
  *
- * A native `<button type="submit">` needs nothing else: the directive listens for
- * the form's own submit event. `ap-button` can't be that button — it renders
+ * Two ways to trigger it, both shown live. A native `<button type="submit">` would
+ * need nothing at all, but `ap-button` cannot be that button: it renders
  * `type="button"`, and the host `type` attribute it appears to accept is taken off
  * the host and then lost, because it is forwarded through `markForCheck()` on the
  * declaring view while `ap-button`'s own view is OnPush (pinned in
- * `probe.spec.ts`). So it asks the form to submit itself.
+ * `probe.spec.ts`). So either it asks the form to submit itself with
+ * `requestSubmit()`, or the page calls `submit(this.composer)` directly — the same
+ * function `[formRoot]` calls, with the same declared submission.
  *
  * Note `submit()` throws if the form has no `submission.action` — which is why
  * the earlier pages, which have no action, reveal their errors with
@@ -100,22 +103,32 @@ import {
 
         <!-- Neither button is disabled while the form is invalid: submitting is
              how you find out what is wrong. The loading input already blocks a
-             second submit, because ap-button sets attr.disabled from it. -->
-        <div class="actions">
-          <!-- The mechanism: a plain submit button, and the form does the rest. -->
-          <button type="submit">Schedule</button>
+             second submit, because ap-button sets attr.disabled from it.
 
-          <!-- Our design system: ap-button renders type="button" and swallows a
-               host type attribute (probe.spec.ts), so it asks the form to submit
-               itself instead. Same [formRoot], same submission. -->
+             Two triggers, one submission. type="submit" on ap-button is not an
+             option: it renders type="button" and swallows a host type attribute
+             (pinned in probe.spec.ts). -->
+        <div class="actions">
+          <!-- 1 · through the form: requestSubmit() fires the native submit
+               event, which is what [formRoot] listens for. -->
           <ap-button [loading]="composer().submitting()" (click)="formEl.requestSubmit()">
-            Schedule (ap-button)
+            Schedule
+          </ap-button>
+
+          <!-- 2 · from TypeScript: no form event involved at all. -->
+          <ap-button
+            [config]="{ style: 'stroked', color: 'blue' }"
+            [loading]="composer().submitting()"
+            (click)="save()"
+          >
+            Schedule (from TypeScript)
           </ap-button>
         </div>
       </form>
 
       <app-code label="The whole form: state, rules, submission" [code]="formSnippet" />
-      <app-code label="The template — the form submits itself" lang="html" [code]="templateSnippet" />
+      <app-code label="The template — formRoot, and two triggers" lang="html" [code]="templateSnippet" />
+      <app-code label="…or submit from TypeScript, same submission" [code]="programmaticSnippet" />
       <app-code label="The form-level summary" [code]="summarySnippet" />
 
       <p class="demo__pain demo__win">
@@ -139,6 +152,7 @@ channel errors: {{ composer.channels().errors() | json }}</pre>
 export class SubmitPage {
   protected readonly formSnippet = SIGNAL_SUBMIT_FORM;
   protected readonly templateSnippet = SIGNAL_SUBMIT_TEMPLATE;
+  protected readonly programmaticSnippet = SIGNAL_SUBMIT_PROGRAMMATIC;
   protected readonly summarySnippet = SIGNAL_SUBMIT_SUMMARY;
 
   private readonly api = inject(PublishApi);
@@ -206,6 +220,17 @@ export class SubmitPage {
         message: error.message ?? error.kind,
       })),
   );
+
+  /**
+   * Submitting from TypeScript: `submit()` is the same function `[formRoot]` calls,
+   * so there is no second path to keep in sync. Called with no options it reuses
+   * the `submission` declared on the form — passing an action here would replace
+   * it. It resolves to whether the submission ran and produced no errors, which is
+   * what a view-model would return to its caller.
+   */
+  protected async save(): Promise<boolean> {
+    return await submit(this.composer);
+  }
 
   protected toggle(channel: Channel): void {
     this.model.update((draft) => ({

@@ -84,9 +84,9 @@ describe('design system probe', () => {
     await fixture.whenStable();
     expect(fixture.componentInstance.submitted()).toBe(false);
 
-    // A native button in the same form does submit it — which is why S7 shows
-    // both: `<button type="submit">` for the mechanism, and `requestSubmit()`
-    // for the design-system button.
+    // A native button in the same form does submit it, which is the control case:
+    // the form is fine, the button is the problem. S7 therefore triggers
+    // submission either with `requestSubmit()` or by calling `submit()` directly.
     el.querySelector<HTMLButtonElement>('#native')!.click();
     await fixture.whenStable();
     expect(fixture.componentInstance.submitted()).toBe(true);

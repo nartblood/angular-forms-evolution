@@ -56,13 +56,14 @@ protected readonly composer = form(
 );`;
 
 /**
- * The submit path end to end: `[formRoot]` on the form and a plain
- * `<button type="submit">`. No `(ngSubmit)`, no `#fd="ngForm"`, no click handler,
+ * `[formRoot]` on the form is the whole wiring: no `(ngSubmit)`, no `#fd="ngForm"`,
  * no `submitted` flag.
  *
- * `ap-button` is the exception, not the rule: it renders `type="button"`, and the
- * host `type` attribute it looks like it accepts is removed from the host and then
- * dropped (`probe.spec.ts`), so it calls `requestSubmit()` on the form instead.
+ * What it listens for is the native submit event — so with a plain
+ * `<button type="submit">` there would be nothing else to write. `ap-button` cannot
+ * be that button: it renders `type="button"`, and the host `type` attribute it
+ * looks like it accepts is removed from the host and then dropped
+ * (`probe.spec.ts`). Hence the two triggers below.
  */
 export const SIGNAL_SUBMIT_TEMPLATE = `<form [formRoot]="composer" #formEl novalidate>
   <div class="field">
@@ -89,19 +90,38 @@ export const SIGNAL_SUBMIT_TEMPLATE = `<form [formRoot]="composer" #formEl noval
 
   <!-- Neither button is disabled while the form is invalid: submitting is
        how you find out what is wrong. The loading input already blocks a
-       second submit, because ap-button sets attr.disabled from it. -->
-  <div class="actions">
-    <!-- The mechanism: a plain submit button, and the form does the rest. -->
-    <button type="submit">Schedule</button>
+       second submit, because ap-button sets attr.disabled from it.
 
-    <!-- Our design system: ap-button renders type="button" and swallows a
-         host type attribute (probe.spec.ts), so it asks the form to submit
-         itself instead. Same [formRoot], same submission. -->
+       Two triggers, one submission. type="submit" on ap-button is not an
+       option: it renders type="button" and swallows a host type attribute
+       (pinned in probe.spec.ts). -->
+  <div class="actions">
+    <!-- 1 · through the form: requestSubmit() fires the native submit
+         event, which is what [formRoot] listens for. -->
     <ap-button [loading]="composer().submitting()" (click)="formEl.requestSubmit()">
-      Schedule (ap-button)
+      Schedule
+    </ap-button>
+
+    <!-- 2 · from TypeScript: no form event involved at all. -->
+    <ap-button
+      [config]="{ style: 'stroked', color: 'blue' }"
+      [loading]="composer().submitting()"
+      (click)="save()"
+    >
+      Schedule (from TypeScript)
     </ap-button>
   </div>
 </form>`;
+
+/**
+ * The programmatic path. `submit()` is the same function the directive calls, so
+ * there is no second code path: same touched cascade, same `submitting()`, same
+ * server errors landing on fields. A view-model can own this and the template
+ * never needs `[formRoot]` at all.
+ */
+export const SIGNAL_SUBMIT_PROGRAMMATIC = `protected async save(): Promise<boolean> {
+  return await submit(this.composer);
+}`;
 
 /** From `submit-page.ts` — the form-level list, without walking any controls. */
 export const SIGNAL_SUBMIT_SUMMARY = `protected readonly summary = computed(() =>

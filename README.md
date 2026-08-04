@@ -93,14 +93,19 @@ actions go through `formEl.requestSubmit()` (see the `[formRoot]` page) or a `(c
 host `type` up in `ngAfterViewInit`, **removes it from the host**, and forwards it to the native
 button through `markForCheck()` on the *declaring* view — while `ap-button`'s own view is OnPush. In
 a zoneless app nothing re-evaluates `[attr.type]`, so the attribute is silently dropped and the
-button stays `type="button"`. Making `hostType` a signal would fix it; until then, `requestSubmit()`.
+button stays `type="button"`. Making `hostType` a signal would fix it.
+
+Until then there are two working triggers, both live on `/signal/submit`: `formEl.requestSubmit()`,
+which fires the submit event `[formRoot]` listens for, and `submit(this.composer)` called from
+TypeScript — the same function the directive calls, reusing the `submission` declared on the form.
+The second one needs no `[formRoot]` at all, which is the shape a view-model wants.
 
 `apInput` is a directive on a native `<input>` rather than a wrapper component, so the same markup
 composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapter layer.
 
 ## Tests
 
-`npm test` — 101 tests, in these kinds:
+`npm test` — 102 tests, in these kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.

@@ -59,23 +59,26 @@ describe('S7 · submit', () => {
     ]);
   });
 
-  it('submits from the form’s own submit button, with no handler of ours', async () => {
+  it('submits through the form, from ap-button asking it to', async () => {
     const { fixture, element, shown } = await setup();
 
-    // The whole wiring is `[formRoot]` plus `type="submit"`. Note the selector
-    // only matches the native button: ap-button renders `type="button"`.
-    element.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
+    // requestSubmit() fires the native submit event [formRoot] listens for.
+    element.querySelectorAll<HTMLButtonElement>('ap-button button')[0].click();
     await fixture.whenStable();
 
     expect(shown()).toEqual(['Pick at least one channel', 'Content is required']);
   });
 
-  it('and from ap-button, which has to ask the form to submit itself', async () => {
-    const { fixture, element, shown } = await setup();
+  it('submits from TypeScript with the same result and no form event', async () => {
+    const { fixture, shown } = await setup();
+    const page = fixture.componentInstance as unknown as { save: () => Promise<boolean> };
 
-    element.querySelector<HTMLButtonElement>('ap-button button')!.click();
+    const succeeded = await page.save();
     await fixture.whenStable();
 
+    // Same touched cascade, same errors, and the call reports the outcome — so a
+    // view-model can own submission without the template being involved.
+    expect(succeeded).toBe(false);
     expect(shown()).toEqual(['Pick at least one channel', 'Content is required']);
   });
 });
