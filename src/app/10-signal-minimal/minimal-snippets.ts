@@ -16,21 +16,15 @@ protected readonly composer = form(this.model, (path) => {
 });`;
 
 /**
- * From `minimal-page.ts`. Two field kinds side by side, which is the whole point:
- * `content` is *bound* with `[formField]` (the directive supplies the value, the
- * writes and the blur that sets `touched`), while `channels` is plain state the
- * page writes itself — and still validates. The `@if` noise around the messages
- * is what S9 collapses into one computed per field.
+ * From `minimal-page.ts`. Two very different fields — a `Channel[]` behind four
+ * checkboxes and a string in a textarea — bound the same way, with no handler
+ * and no `markAsTouched()` on either. The `@if` noise around the message is what
+ * S9 collapses into one computed per field; the channel field doesn't have one
+ * because the control renders its own.
  */
 export const SIGNAL_MINIMAL_TEMPLATE = `<div class="field">
   <label>Channels</label>
-  <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
-  @if (composer.channels().touched() && composer.channels().invalid()) {
-    <ap-form-message
-      messageType="error"
-      [message]="composer.channels().errors()[0].message ?? 'Invalid'"
-    />
-  }
+  <app-channel-control [formField]="composer.channels" />
 </div>
 
 <ap-form-field>
@@ -44,18 +38,23 @@ export const SIGNAL_MINIMAL_TEMPLATE = `<div class="field">
   }
 </ap-form-field>`;
 
-export const SIGNAL_MINIMAL_WRITE = `protected toggle(channel: Channel): void {
-  // Writing to the model is writing to the form. One direction, one mechanism.
-  this.model.update((draft) => ({
-    ...draft,
-    channels: toggleChannel(draft.channels, channel),
-  }));
+/**
+ * From `shared/channel-control.ts`. What the picker had to declare to be bindable
+ * at all: a `value` model, and — optionally — the state it wants pushed in. That's
+ * the whole contract; S10 shows the rest of the component and the `touch` policy
+ * behind it.
+ */
+export const SIGNAL_MINIMAL_CONTROL = `export class ChannelControl implements FormValueControl<Channel[]> {
+  // The one required member of the contract: [formField] reads it *and* writes
+  // to it, which is why it is a model() rather than an input().
+  readonly value = model<Channel[]>([]);
 
-  // \`touched\` is set by the [formField] binding. Channels has no such binding
-  // on purpose — it's plain state behind ap-checkbox — so nothing marks it
-  // touched, and the template gates the error on touched(). Validation comes
-  // free for unbound state; interaction state does not. S10 binds this same
-  // picker as a control and gets touched from it, which deletes both halves
-  // of this method.
-  this.composer.channels().markAsTouched();
-}`;
+  // Optional, and filled in by [formField] because they are declared. The page
+  // binds none of them — declaring them is the subscription.
+  readonly errors = input<readonly ValidationError.WithOptionalFieldTree[]>([]);
+  readonly touched = input(false);
+  readonly disabled = input(false);
+
+  // A checkbox group never blurs in a meaningful way, so touched is modelled as
+  // first interaction. On a text control this would be the blur handler.
+  readonly touch = output<void>();`;

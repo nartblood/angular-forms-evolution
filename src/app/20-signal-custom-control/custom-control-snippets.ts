@@ -1,10 +1,10 @@
 /**
- * From `shared/channel-field.ts`. The whole contract: one `model()` that
+ * From `shared/channel-control.ts`. The whole contract: one `model()` that
  * `[formField]` reads and writes, optional `input()`s it fills in when they are
  * declared, and an output that marks the field touched. No `NG_VALUE_ACCESSOR`,
  * no `writeValue`, and the only import from the forms package is a type.
  */
-export const SIGNAL_CONTROL_COMPONENT = `export class ChannelField implements FormValueControl<Channel[]> {
+export const SIGNAL_CONTROL_COMPONENT = `export class ChannelControl implements FormValueControl<Channel[]> {
   // The one required member of the contract: [formField] reads it *and* writes
   // to it, which is why it is a model() rather than an input().
   readonly value = model<Channel[]>([]);
@@ -37,7 +37,7 @@ export const SIGNAL_CONTROL_COMPONENT = `export class ChannelField implements Fo
 }`;
 
 /**
- * Also from `shared/channel-field.ts` — the control's own template. `errors` and
+ * Also from `shared/channel-control.ts` — the control's own template. `errors` and
  * `touched` arrive as inputs, so the message moves *into* the component and every
  * page that binds the field stops repeating the `@if`.
  */
@@ -49,7 +49,7 @@ export const SIGNAL_CONTROL_MESSAGE = `<!-- The control owns its message. The pa
 /** From `custom-control-page.ts`. One binding, and a `Channel[]` at that. */
 export const SIGNAL_CONTROL_TEMPLATE = `<div class="field">
   <label>Channels</label>
-  <app-channel-field [formField]="composer.channels" />
+  <app-channel-control [formField]="composer.channels" />
 </div>`;
 
 /**

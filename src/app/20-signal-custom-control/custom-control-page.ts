@@ -9,7 +9,7 @@ import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 import { CheckboxComponent } from '@agorapulse/ui-components/checkbox';
 
-import { ChannelField } from '../shared/channel-field';
+import { ChannelControl } from '../shared/channel-control';
 import { emptyDraft } from '../shared/post-draft';
 import { CodePanel } from '../shared/code-panel';
 import {
@@ -20,12 +20,12 @@ import {
 } from './custom-control-snippets';
 
 /**
- * Step 10 — the same channel picker, as a form control.
+ * Step 10 — how the channel control every other page binds is actually built.
  *
- * S1 leaves `channels` as plain state to show that `validate()` targets a model
- * path rather than a control. This page is the other half of that story: when a
- * composite component *does* want to be a form control, Signal Forms asks for a
- * `model()` and some optional `input()`s — not a `ControlValueAccessor`.
+ * S1 onwards use `<app-channel-control [formField]="composer.channels">` and say
+ * nothing about what's inside it. This page opens it: the contract is a `model()`
+ * plus some optional `input()`s, not a `ControlValueAccessor`. The comparison it
+ * carries is against `channel-picker.ts`, the same component unbound.
  */
 @Component({
   selector: 'app-signal-custom-control-page',
@@ -37,7 +37,7 @@ import {
     FormMessageComponent,
     ButtonComponent,
     CheckboxComponent,
-    ChannelField,
+    ChannelControl,
     JsonPipe,
     CodePanel,
   ],
@@ -46,20 +46,20 @@ import {
       <span class="demo__badge demo__badge--signal">S10 · signal forms</span>
       <h2>A composite component as a control</h2>
       <a class="demo__pair-link" routerLink="/signal/minimal">
-        ← Compare with S1, where the same picker stays unbound
+        ← Back to S1, which binds this control and says nothing about it
       </a>
 
       <p class="demo__intro">
-        Same picker, same rules, one binding instead of a handler:
-        <code>[formField]="composer.channels"</code> on a component whose value is a
-        <code>Channel[]</code>. The page no longer toggles anything, no longer calls
-        <code>markAsTouched()</code>, and no longer renders that field's error.
+        Every signal page here binds <code>[formField]="composer.channels"</code> onto a component
+        whose value is a <code>Channel[]</code> — no toggle handler, no
+        <code>markAsTouched()</code>, no error block. This is what that component has to declare to
+        earn it, and how little of it is forms-specific.
       </p>
 
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <app-channel-field [formField]="composer.channels" />
+          <app-channel-control [formField]="composer.channels" />
         </div>
 
         <ap-form-field>
@@ -105,6 +105,15 @@ import {
         <strong>The value can be anything.</strong> A CVA over a checkbox group has to reconcile a
         boolean per box with an array on the model. Here the field's type <em>is</em>
         <code>Channel[]</code>, so the reconciliation stays inside the component where it belongs.
+      </p>
+
+      <p class="demo__pain demo__win">
+        <strong>Binding it is a choice, not a requirement.</strong> <code>validate()</code> targets a
+        model path, so the unbound version — <code>channel-picker.ts</code>, still used by the
+        reactive pages and by <a routerLink="/signal/i18n">S9</a> — validates just as well with no
+        control involved at all. What it doesn't get is interaction state: each page then owns a
+        toggle handler, a <code>markAsTouched()</code> call and an error block. That's the trade, and
+        it's per component.
       </p>
 
       <p class="demo__pain">

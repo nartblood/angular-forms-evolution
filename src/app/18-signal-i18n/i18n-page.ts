@@ -112,6 +112,9 @@ const MAX_FIRST_COMMENT_LENGTH = 20;
 
         <div class="field">
           <label>{{ 'composer.channels.label' | translate }}</label>
+          <!-- The one signal page still using the unbound picker: the fallback
+               below has to render in the page to be the lesson. Bound as a
+               control (S1, S10) the message lives inside the component. -->
           <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
 
           <!-- Fallback: nothing on the error to show, so build the key here. -->

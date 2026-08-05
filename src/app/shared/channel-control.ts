@@ -14,12 +14,14 @@ import { CHANNELS, CHANNEL_LABEL, Channel } from './channel';
  * `model()` and a few optional `input()`s, which is why the only thing imported
  * from `@angular/forms/signals` here is a type.
  *
- * Kept as a duplicate of `ChannelPicker` on purpose: S1 needs the unbound version
- * to make the point that validation targets a model path, so this page can show
- * what the bound version buys instead of arguing about it.
+ * Deliberately a duplicate of `ChannelPicker` rather than a replacement: the
+ * picker still serves the template-driven and reactive pages, which have no such
+ * contract to bind to, and S9, whose lesson is a message the *page* has to build.
+ * Every signal page other than S9 uses this one, so the diff between the two
+ * files is the argument.
  */
 @Component({
-  selector: 'app-channel-field',
+  selector: 'app-channel-control',
   imports: [CheckboxComponent, FormMessageComponent],
   template: `
     <div class="boxes">
@@ -52,7 +54,7 @@ import { CHANNELS, CHANNEL_LABEL, Channel } from './channel';
     }
   `,
 })
-export class ChannelField implements FormValueControl<Channel[]> {
+export class ChannelControl implements FormValueControl<Channel[]> {
   // The one required member of the contract: [formField] reads it *and* writes
   // to it, which is why it is a model() rather than an input().
   readonly value = model<Channel[]>([]);

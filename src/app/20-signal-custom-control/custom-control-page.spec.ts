@@ -28,10 +28,10 @@ describe('S10 · a composite component as a control', () => {
 
     const boxes = () =>
       Array.from(
-        element.querySelectorAll<HTMLInputElement>('app-channel-field input[type="checkbox"]'),
+        element.querySelectorAll<HTMLInputElement>('app-channel-control input[type="checkbox"]'),
       );
     const message = () =>
-      element.querySelector('app-channel-field ap-form-message')?.textContent?.trim() ?? null;
+      element.querySelector('app-channel-control ap-form-message')?.textContent?.trim() ?? null;
 
     return { fixture, page, boxes, message };
   }

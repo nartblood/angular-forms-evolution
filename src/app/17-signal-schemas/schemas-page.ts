@@ -10,7 +10,7 @@ import { ButtonComponent } from '@agorapulse/ui-components/button';
 import { RadioComponent } from '@agorapulse/ui-components/radio';
 
 import { Channel, toggleChannel } from '../shared/channel';
-import { ChannelPicker } from '../shared/channel-picker';
+import { ChannelControl } from '../shared/channel-control';
 import { MediaItem, emptyDraft, emptyMediaItem, existingDraft } from '../shared/post-draft';
 import { composerSchema, mediaItemSchema } from './composer-schema';
 import { CodePanel } from '../shared/code-panel';
@@ -40,7 +40,7 @@ import {
     FormMessageComponent,
     ButtonComponent,
     RadioComponent,
-    ChannelPicker,
+    ChannelControl,
     JsonPipe,
     CodePanel,
   ],
@@ -56,13 +56,7 @@ import {
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
-          @if (composer.channels().invalid()) {
-            <ap-form-message
-              messageType="error"
-              [message]="composer.channels().errors()[0].message ?? 'Invalid'"
-            />
-          }
+          <app-channel-control [formField]="composer.channels" />
         </div>
 
         <ap-form-field>
@@ -232,12 +226,6 @@ export class SchemasPage {
   /** Every rule, applied. */
   protected readonly composer = form(this.model, composerSchema);
 
-  protected toggle(channel: Channel): void {
-    this.model.update((draft) => ({
-      ...draft,
-      channels: toggleChannel(draft.channels, channel),
-    }));
-  }
 
   protected addMedia(): void {
     this.model.update((draft) => ({ ...draft, media: [...draft.media, emptyMediaItem()] }));

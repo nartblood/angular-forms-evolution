@@ -67,13 +67,7 @@ protected readonly composer = form(
 export const SIGNAL_SUBMIT_TEMPLATE = `<form [formRoot]="composer" novalidate>
   <div class="field">
     <label>Channels</label>
-    <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
-    @if (composer.channels().touched() && composer.channels().invalid()) {
-      <ap-form-message
-        messageType="error"
-        [message]="composer.channels().errors()[0].message ?? 'Invalid'"
-      />
-    }
+    <app-channel-control [formField]="composer.channels" />
   </div>
 
   <ap-form-field>

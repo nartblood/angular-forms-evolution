@@ -26,7 +26,16 @@ describe('S4 · arrays — what submit reveals', () => {
     const page = fixture.componentInstance as unknown as {
       composer: { (): FieldStateLike; media: () => FieldStateLike };
       addMedia: () => void;
-      toggle: (channel: 'instagram') => void;
+    };
+
+    // Channels is bound with [formField] now, so the only way in is the control's
+    // own checkbox — which is the honest path anyway.
+    const pickInstagram = async () => {
+      const boxes = element.querySelectorAll<HTMLInputElement>(
+        'app-channel-control input[type="checkbox"]',
+      );
+      boxes[2].click(); // CHANNELS order: x, linkedin, instagram, facebook
+      await fixture.whenStable();
     };
 
     const shown = () =>
@@ -38,7 +47,7 @@ describe('S4 · arrays — what submit reveals', () => {
       await fixture.whenStable();
     };
 
-    return { fixture, page, shown, schedule };
+    return { fixture, page, shown, schedule, pickInstagram };
   }
 
   it('has nothing to report on an empty form — every rule here is conditional', async () => {
@@ -68,12 +77,13 @@ describe('S4 · arrays — what submit reveals', () => {
   });
 
   it('reveals the list-level rule when a channel demands an image', async () => {
-    const { fixture, page, shown, schedule } = await setup();
+    const { page, shown, pickInstagram } = await setup();
 
-    page.toggle('instagram');
-    await fixture.whenStable();
-    await schedule();
+    await pickInstagram();
 
+    // No submit needed: the control marks channels touched on first interaction,
+    // and the list message is gated on either field being touched — the rule is
+    // about the pair, so the choice that breaks it is what reveals it.
     expect(page.composer.media().errors().length).toBe(1);
     expect(shown()).toEqual(['instagram requires at least one image']);
   });

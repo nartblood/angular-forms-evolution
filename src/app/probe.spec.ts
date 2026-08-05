@@ -77,7 +77,7 @@ describe('design system probe', () => {
     // boolean, and the native `change` event bubbles out of the hidden <input>
     // that the component clicks internally — the listener on <ap-checkbox> sees
     // both. A handler that *toggles* therefore cancels itself out, which is why
-    // ChannelPicker and ChannelField ignore anything that isn't a boolean.
+    // ChannelPicker and ChannelControl ignore anything that isn't a boolean.
     expect(fixture.componentInstance.changes()).toEqual(['boolean', 'DOM Event']);
   });
 

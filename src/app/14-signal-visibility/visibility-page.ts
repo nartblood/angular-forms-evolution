@@ -10,7 +10,7 @@ import { ButtonComponent } from '@agorapulse/ui-components/button';
 import { RadioComponent } from '@agorapulse/ui-components/radio';
 
 import { Channel, supportsFirstComment, toggleChannel } from '../shared/channel';
-import { ChannelPicker } from '../shared/channel-picker';
+import { ChannelControl } from '../shared/channel-control';
 import { emptyDraft } from '../shared/post-draft';
 import { CodePanel } from '../shared/code-panel';
 import { SIGNAL_VISIBILITY_RULES, SIGNAL_VISIBILITY_TEMPLATE } from './visibility-snippets';
@@ -32,7 +32,7 @@ import { SIGNAL_VISIBILITY_RULES, SIGNAL_VISIBILITY_TEMPLATE } from './visibilit
     FormMessageComponent,
     ButtonComponent,
     RadioComponent,
-    ChannelPicker,
+    ChannelControl,
     JsonPipe,
     CodePanel,
   ],
@@ -47,7 +47,7 @@ import { SIGNAL_VISIBILITY_RULES, SIGNAL_VISIBILITY_TEMPLATE } from './visibilit
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
+          <app-channel-control [formField]="composer.channels" />
         </div>
 
         <ap-form-field>
@@ -139,10 +139,4 @@ export class VisibilityPage {
     });
   });
 
-  protected toggle(channel: Channel): void {
-    this.model.update((draft) => ({
-      ...draft,
-      channels: toggleChannel(draft.channels, channel),
-    }));
-  }
 }

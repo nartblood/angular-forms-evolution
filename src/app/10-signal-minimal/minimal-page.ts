@@ -8,14 +8,13 @@ import { FormFieldComponent } from '@agorapulse/ui-components/form-field';
 import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
-import { Channel, toggleChannel } from '../shared/channel';
-import { ChannelPicker } from '../shared/channel-picker';
+import { ChannelControl } from '../shared/channel-control';
 import { PostDraft } from '../shared/post-draft';
 import { CodePanel } from '../shared/code-panel';
 import {
+  SIGNAL_MINIMAL_CONTROL,
   SIGNAL_MINIMAL_FORM,
   SIGNAL_MINIMAL_TEMPLATE,
-  SIGNAL_MINIMAL_WRITE,
 } from './minimal-snippets';
 
 /**
@@ -33,7 +32,7 @@ import {
     FormFieldComponent,
     FormMessageComponent,
     ButtonComponent,
-    ChannelPicker,
+    ChannelControl,
     JsonPipe,
     CodePanel,
   ],
@@ -54,13 +53,7 @@ import {
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
-          @if (composer.channels().touched() && composer.channels().invalid()) {
-            <ap-form-message
-              messageType="error"
-              [message]="composer.channels().errors()[0].message ?? 'Invalid'"
-            />
-          }
+          <app-channel-control [formField]="composer.channels" />
         </div>
 
         <ap-form-field>
@@ -84,7 +77,10 @@ import {
 
       <app-code label="The form" [code]="formSnippet" />
       <app-code label="Binding it in the template" lang="html" [code]="templateSnippet" />
-      <app-code label="Writing to it" [code]="writeSnippet" />
+      <app-code
+        label="What makes app-channel-control bindable — the whole contract"
+        [code]="controlSnippet"
+      />
 
       <p class="demo__pain demo__win">
         <strong>One binding, and it's type-checked.</strong>
@@ -99,12 +95,23 @@ import {
       </p>
 
       <p class="demo__pain demo__win">
-        <strong>Already different.</strong> Channels is plain state toggled by an
-        <code>ap-checkbox</code> — no control, no <code>ControlValueAccessor</code> — and it still
-        validates, because <code>validate()</code> targets the model path rather than a form control.
-        What it doesn't get is interaction state, hence the <code>markAsTouched()</code> above;
-        <a routerLink="/signal/custom-control">S10</a> binds the same picker as a control and gets
-        that for free too.
+        <strong>Both fields are bound the same way, and one of them is a component.</strong>
+        Channels is a <code>Channel[]</code> behind four checkboxes — R1 needs a handler, a
+        <code>markAsTouched()</code> call and an error block for it; here it is
+        <code>&lt;app-channel-control [formField]="composer.channels" /&gt;</code> and nothing else.
+        Same directive as the textarea above, same <code>FormField</code> import.
+      </p>
+
+      <p class="demo__pain demo__win">
+        <strong>What the component had to do to earn that:</strong> implement
+        <code>FormValueControl&lt;Channel[]&gt;</code> — declare <code>value</code> as a
+        <code>model()</code>, and declare whichever of <code>errors</code> / <code>touched</code> /
+        <code>disabled</code> / <code>invalid</code> / <code>required</code> it wants pushed in.
+        Declaring them <em>is</em> the subscription: the page binds none of them. No
+        <code>NG_VALUE_ACCESSOR</code>, no <code>writeValue</code> — the only import from
+        <code>&#64;angular/forms/signals</code> is the interface, so it stays an ordinary component
+        with a two-way <code>value</code>. Full component and the <code>touch</code> policy:
+        <a routerLink="/signal/custom-control">S10</a>.
       </p>
 
       <pre class="demo__state">{{ model() | json }}</pre>
@@ -114,7 +121,7 @@ import {
 export class MinimalPage {
   protected readonly formSnippet = SIGNAL_MINIMAL_FORM;
   protected readonly templateSnippet = SIGNAL_MINIMAL_TEMPLATE;
-  protected readonly writeSnippet = SIGNAL_MINIMAL_WRITE;
+  protected readonly controlSnippet = SIGNAL_MINIMAL_CONTROL;
 
   /**
    * Spelled out rather than `signal(emptyDraft())`: on the page whose argument
@@ -138,20 +145,4 @@ export class MinimalPage {
       value().length === 0 ? { kind: 'noChannels', message: 'Pick at least one channel' } : null,
     );
   });
-
-  protected toggle(channel: Channel): void {
-    // Writing to the model is writing to the form. One direction, one mechanism.
-    this.model.update((draft) => ({
-      ...draft,
-      channels: toggleChannel(draft.channels, channel),
-    }));
-
-    // `touched` is set by the [formField] binding. Channels has no such binding
-    // on purpose — it's plain state behind ap-checkbox — so nothing marks it
-    // touched, and the template gates the error on touched(). Validation comes
-    // free for unbound state; interaction state does not. S10 binds this same
-    // picker as a control and gets touched from it, which deletes both halves
-    // of this method.
-    this.composer.channels().markAsTouched();
-  }
 }

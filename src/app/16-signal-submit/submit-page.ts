@@ -9,7 +9,7 @@ import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { ApButtonSubmit } from '../shared/ap-button-submit';
 import { Channel, toggleChannel } from '../shared/channel';
-import { ChannelPicker } from '../shared/channel-picker';
+import { ChannelControl } from '../shared/channel-control';
 import { emptyDraft } from '../shared/post-draft';
 import { PublishApi } from '../shared/publish-api';
 import { CodePanel } from '../shared/code-panel';
@@ -51,7 +51,7 @@ import {
     FormMessageComponent,
     ButtonComponent,
     ApButtonSubmit,
-    ChannelPicker,
+    ChannelControl,
     JsonPipe,
     CodePanel,
   ],
@@ -83,13 +83,7 @@ import {
       <form [formRoot]="composer" novalidate>
         <div class="field">
           <label>Channels</label>
-          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
-          @if (composer.channels().touched() && composer.channels().invalid()) {
-            <ap-form-message
-              messageType="error"
-              [message]="composer.channels().errors()[0].message ?? 'Invalid'"
-            />
-          }
+          <app-channel-control [formField]="composer.channels" />
         </div>
 
         <ap-form-field>
@@ -235,11 +229,4 @@ export class SubmitPage {
     return await submit(this.composer);
   }
 
-  protected toggle(channel: Channel): void {
-    this.model.update((draft) => ({
-      ...draft,
-      channels: toggleChannel(draft.channels, channel),
-    }));
-    this.composer.channels().markAsTouched();
-  }
 }

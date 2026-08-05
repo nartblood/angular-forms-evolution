@@ -10,7 +10,7 @@ import { FormMessageComponent } from '@agorapulse/ui-components/form-message';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 
 import { Channel, contentLimitFor, toggleChannel } from '../shared/channel';
-import { ChannelPicker } from '../shared/channel-picker';
+import { ChannelControl } from '../shared/channel-control';
 import { CodePanel } from '../shared/code-panel';
 import { ZOD_SCHEMA, ZOD_WIRING } from './zod-snippets';
 
@@ -57,7 +57,7 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
     FormFieldComponent,
     FormMessageComponent,
     ButtonComponent,
-    ChannelPicker,
+    ChannelControl,
     JsonPipe,
     CodePanel,
   ],
@@ -83,13 +83,7 @@ type ZodDraft = z.infer<ReturnType<typeof draftSchema>>;
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
-          @if (composer.channels().invalid()) {
-            <ap-form-message
-              messageType="error"
-              [message]="composer.channels().errors()[0].message ?? 'Invalid'"
-            />
-          }
+          <app-channel-control [formField]="composer.channels" />
         </div>
 
         <ap-form-field>
@@ -170,10 +164,4 @@ export class ZodPage {
     });
   });
 
-  protected toggle(channel: Channel): void {
-    this.model.update((draft) => ({
-      ...draft,
-      channels: toggleChannel(draft.channels as Channel[], channel),
-    }));
-  }
 }

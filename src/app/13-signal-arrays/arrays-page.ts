@@ -13,7 +13,7 @@ import {
   maxMediaFor,
   toggleChannel,
 } from '../shared/channel';
-import { ChannelPicker } from '../shared/channel-picker';
+import { ChannelControl } from '../shared/channel-control';
 import { emptyDraft, emptyMediaItem } from '../shared/post-draft';
 import { CodePanel } from '../shared/code-panel';
 import { SIGNAL_ARRAYS_LIST_RULE, SIGNAL_ARRAYS_MUTATION, SIGNAL_ARRAYS_PER_ITEM } from './arrays-snippets';
@@ -33,7 +33,7 @@ import { SIGNAL_ARRAYS_LIST_RULE, SIGNAL_ARRAYS_MUTATION, SIGNAL_ARRAYS_PER_ITEM
     FormFieldComponent,
     FormMessageComponent,
     ButtonComponent,
-    ChannelPicker,
+    ChannelControl,
     JsonPipe,
     CodePanel,
   ],
@@ -48,12 +48,19 @@ import { SIGNAL_ARRAYS_LIST_RULE, SIGNAL_ARRAYS_MUTATION, SIGNAL_ARRAYS_PER_ITEM
       <form novalidate>
         <div class="field">
           <label>Channels</label>
-          <app-channel-picker [selected]="model().channels" (toggled)="toggle($event)" />
+          <app-channel-control [formField]="composer.channels" />
           <!-- Gated on errors(), NOT on invalid(): invalid() aggregates every
                descendant, so an empty media row would open this block while the
                list's own errors() is empty — and errors()[0].message would throw,
-               taking the rest of the render with it. errors() is own-only. -->
-          @if (composer.media().touched() && composer.media().errors().length > 0) {
+               taking the rest of the render with it. errors() is own-only.
+
+               Touched on either field opens it, because the rule is about the
+               pair: picking Instagram is what makes "no image" wrong, and the
+               channel control marks channels touched on first interaction. -->
+          @if (
+            (composer.channels().touched() || composer.media().touched()) &&
+            composer.media().errors().length > 0
+          ) {
             <ap-form-message
               messageType="error"
               [message]="composer.media().errors()[0].message ?? 'Invalid'"
@@ -154,13 +161,6 @@ export class ArraysPage {
     });
   });
 
-  protected toggle(channel: Channel): void {
-    this.model.update((draft) => ({
-      ...draft,
-      channels: toggleChannel(draft.channels, channel),
-    }));
-    this.composer.media().markAsTouched();
-  }
 
   protected addMedia(): void {
     this.model.update((draft) => ({ ...draft, media: [...draft.media, emptyMediaItem()] }));

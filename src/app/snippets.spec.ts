@@ -29,9 +29,9 @@ import {
   REACTIVE_SERVER_ERROR,
 } from './09-reactive-everything/reactive-snippets';
 import {
+  SIGNAL_MINIMAL_CONTROL,
   SIGNAL_MINIMAL_FORM,
   SIGNAL_MINIMAL_TEMPLATE,
-  SIGNAL_MINIMAL_WRITE,
 } from './10-signal-minimal/minimal-snippets';
 import {
   SIGNAL_CONDITIONAL_MODEL,
@@ -112,7 +112,7 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
 
   ['S1 form', SIGNAL_MINIMAL_FORM, '10-signal-minimal/minimal-page.ts'],
   ['S1 template', SIGNAL_MINIMAL_TEMPLATE, '10-signal-minimal/minimal-page.ts'],
-  ['S1 write', SIGNAL_MINIMAL_WRITE, '10-signal-minimal/minimal-page.ts'],
+  ['S1 control contract', SIGNAL_MINIMAL_CONTROL, 'shared/channel-control.ts'],
 
   ['S2 rule', SIGNAL_CONDITIONAL_RULE, '11-signal-conditional/conditional-page.ts'],
   ['S2 model', SIGNAL_CONDITIONAL_MODEL, '11-signal-conditional/conditional-page.ts'],
@@ -149,8 +149,8 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
   // Guarded against the spec that measures it, so the escape hatch can't rot.
   ['S9 live-switch escape hatch', I18N_LIVE_SWITCH, 'shared/i18n.spec.ts'],
 
-  ['S10 control', SIGNAL_CONTROL_COMPONENT, 'shared/channel-field.ts'],
-  ['S10 own message', SIGNAL_CONTROL_MESSAGE, 'shared/channel-field.ts'],
+  ['S10 control', SIGNAL_CONTROL_COMPONENT, 'shared/channel-control.ts'],
+  ['S10 own message', SIGNAL_CONTROL_MESSAGE, 'shared/channel-control.ts'],
   ['S10 binding', SIGNAL_CONTROL_TEMPLATE, '20-signal-custom-control/custom-control-page.ts'],
   ['S10 rules', SIGNAL_CONTROL_RULES, '20-signal-custom-control/custom-control-page.ts'],
 

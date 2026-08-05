@@ -27,7 +27,7 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | `/reactive/minimal` | `FormGroup` / `FormControl` | the baseline: a control tree, bound by name — read this before the pain pages |
 | `/reactive/conditional` | | one rule, and the `setValidators` + subscription + priming call it needs |
 | `/reactive` | | ten mechanisms every project reimplements, marked `PAIN n` in the source. `?postId=draft-42` opens it on an existing post — the input signal an effect has to push into the control tree |
-| `/signal/minimal` | Signal Forms | the model *is* the form (pairs with `/reactive/minimal`) |
+| `/signal/minimal` | Signal Forms | the model *is* the form, and a `Channel[]` binds like a string does (pairs with `/reactive/minimal`) |
 | `/signal/conditional` | | `required({when})` instead of `setValidators` + `updateValueAndValidity` |
 | `/signal/cross-field` | | `valueOf()` — the error lands on the field that renders it |
 | `/signal/arrays` | | `applyEach`, and add/remove as `model.update()` |
@@ -36,7 +36,7 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | `/signal/submit` | | `[formRoot]`, `submitting()`, `errorSummary()`, field-targeted server errors |
 | `/signal/schemas` | | every rule extracted to `composer-schema.ts`, reused and unit-tested |
 | `/signal/i18n` | | translated copy declared at the rule (`message: () => translate.instant(…)`), and what the view is left with |
-| `/signal/custom-control` | | the channel picker as a `FormValueControl` — one `[formField]` binding onto a component, no `ControlValueAccessor` |
+| `/signal/custom-control` | | what's inside the channel control every page above binds: `FormValueControl`, no `ControlValueAccessor` |
 | `/signal/zod` | | **bonus** — the same rules as Zod via `validateStandardSchema` |
 
 The async demos run against an `HttpInterceptorFn` that fakes the backend, so
@@ -87,8 +87,11 @@ into the model signal. And for components we write fresh, `FormValueControl<T>` 
 entirely: a required `value = model<T>()`, optional `errors` / `touched` / `disabled` / `invalid` /
 `pending` / `required` / `name` inputs that `[formField]` fills in *because they are declared*, and a
 `touch` output. No provider, no `writeValue`, and the value can be a `Channel[]` rather than one
-boolean per checkbox. `shared/channel-field.ts` is the same picker as `shared/channel-picker.ts`
-written that way — the diff between the two files is the whole argument — and
+boolean per checkbox. `shared/channel-control.ts` is the same picker as `shared/channel-picker.ts`
+written that way — the diff between the two files is the whole argument. Every signal page binds the
+control (`<app-channel-control [formField]="composer.channels" />`, no handler and no error block);
+the picker stays for the reactive and template-driven pages, which have no contract to bind to, and
+for S9, whose lesson is a message the page itself has to build. And
 `custom-control-page.spec.ts` pins the four things that matter: the value round-trips, `touch` marks
 the field touched, the error reaches the component's `errors` input on first render (so gating it on
 `touched()` is the component's job), and a `disabled()` rule reaches every checkbox inside.
@@ -121,7 +124,7 @@ with no `[formRoot]` needed. That's the shape a view-model wants.
 output, which emits the new boolean, and once from the native `change` event bubbling out of the
 hidden `<input>` the component clicks internally — a listener on a wrapping element receives that
 second one too. Any handler that *toggles* therefore cancels itself out, which is exactly what
-happened here: channel selection did nothing on every page until `ChannelPicker` and `ChannelField`
+happened here: channel selection did nothing on every page until `ChannelPicker` and `ChannelControl`
 started ignoring payloads that aren't booleans. `probe.spec.ts` pins both the duplicate delivery and
 the single emission after the filter. Worth a ticket: the output should not share a name with a
 bubbling DOM event, or the inner input's `change` should be stopped.
@@ -175,7 +178,7 @@ Signal Forms is **experimental**: the API can change between minor versions. Eve
 written against the docs for Angular 22.1 and verified by the test suite, but check before copying
 into the platform.
 
-`ap-radio` is the only composite `ControlValueAccessor` component exercised here (`channel-field.ts`
+`ap-radio` is the only composite `ControlValueAccessor` component exercised here (`channel-control.ts`
 is the contract-based alternative, not a CVA). It works with
 `[formField]`, which is strong evidence for the rest — but `ap-password-input`, `ap-slide-toggle`,
 `ap-legacy-select` and `ap-phone-number-input` are still untested. `ap-legacy-select` is the one
