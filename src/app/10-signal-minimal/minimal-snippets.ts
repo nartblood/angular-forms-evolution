@@ -51,9 +51,11 @@ export const SIGNAL_MINIMAL_WRITE = `protected toggle(channel: Channel): void {
     channels: toggleChannel(draft.channels, channel),
   }));
 
-  // \`touched\` is set by the [formField] binding's blur handling. Channels has
-  // no such binding on purpose — it's plain state behind ap-checkbox — so
-  // nothing marks it touched, and the template gates the error on touched().
-  // Validation comes free for unbound state; interaction state does not.
+  // \`touched\` is set by the [formField] binding. Channels has no such binding
+  // on purpose — it's plain state behind ap-checkbox — so nothing marks it
+  // touched, and the template gates the error on touched(). Validation comes
+  // free for unbound state; interaction state does not. S10 binds this same
+  // picker as a control and gets touched from it, which deletes both halves
+  // of this method.
   this.composer.channels().markAsTouched();
 }`;

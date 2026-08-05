@@ -102,6 +102,9 @@ import {
         <strong>Already different.</strong> Channels is plain state toggled by an
         <code>ap-checkbox</code> — no control, no <code>ControlValueAccessor</code> — and it still
         validates, because <code>validate()</code> targets the model path rather than a form control.
+        What it doesn't get is interaction state, hence the <code>markAsTouched()</code> above;
+        <a routerLink="/signal/custom-control">S10</a> binds the same picker as a control and gets
+        that for free too.
       </p>
 
       <pre class="demo__state">{{ model() | json }}</pre>
@@ -143,10 +146,12 @@ export class MinimalPage {
       channels: toggleChannel(draft.channels, channel),
     }));
 
-    // `touched` is set by the [formField] binding's blur handling. Channels has
-    // no such binding on purpose — it's plain state behind ap-checkbox — so
-    // nothing marks it touched, and the template gates the error on touched().
-    // Validation comes free for unbound state; interaction state does not.
+    // `touched` is set by the [formField] binding. Channels has no such binding
+    // on purpose — it's plain state behind ap-checkbox — so nothing marks it
+    // touched, and the template gates the error on touched(). Validation comes
+    // free for unbound state; interaction state does not. S10 binds this same
+    // picker as a control and gets touched from it, which deletes both halves
+    // of this method.
     this.composer.channels().markAsTouched();
   }
 }
