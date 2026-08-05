@@ -19,6 +19,7 @@ import { SubmitPage } from './16-signal-submit/submit-page';
 import { SchemasPage } from './17-signal-schemas/schemas-page';
 import { I18nPage } from './18-signal-i18n/i18n-page';
 import { ZodPage } from './19-signal-zod/zod-page';
+import { CustomControlPage } from './20-signal-custom-control/custom-control-page';
 
 /**
  * Smoke coverage: every page must actually mount and render.
@@ -41,6 +42,7 @@ const PAGES: ReadonlyArray<[string, Type<unknown>]> = [
   ['signal · submit', SubmitPage],
   ['signal · schemas', SchemasPage],
   ['signal · i18n (S9)', I18nPage],
+  ['signal · custom control (S10)', CustomControlPage],
   ['signal · zod (bonus)', ZodPage],
 ];
 

@@ -36,6 +36,7 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | `/signal/submit` | | `[formRoot]`, `submitting()`, `errorSummary()`, field-targeted server errors |
 | `/signal/schemas` | | every rule extracted to `composer-schema.ts`, reused and unit-tested |
 | `/signal/i18n` | | translated copy declared at the rule (`message: () => translate.instant(…)`), and what the view is left with |
+| `/signal/custom-control` | | the channel picker as a `FormValueControl` — one `[formField]` binding onto a component, no `ControlValueAccessor` |
 | `/signal/zod` | | **bonus** — the same rules as Zod via `validateStandardSchema` |
 
 The async demos run against an `HttpInterceptorFn` that fakes the backend, so
@@ -77,13 +78,23 @@ Components used: `ap-form-field`, `ap-form-message`, `ap-button`, `ap-radio`, `a
 plus the `[apInput]` / `[apTextarea]` directives. Import them from their **subpaths**
 (`@agorapulse/ui-components/input`) — the root barrel doesn't resolve in a plain Angular app.
 
-### Two findings worth carrying back to the platform
+### Three findings worth carrying back to the platform
 
-**1. `ap-radio` works with all three form APIs.** It implements `ControlValueAccessor` and was
-written for `ngModel` / `formControlName`, but it also binds to Signal Forms' `[formField]`.
-`conditional-page.spec.ts` asserts the radio writes back into the model signal, so this is
-verified rather than assumed — and it means migrating our composite components is not the
-blocker it looked like.
+**1. Composite components are not the migration blocker they looked like — twice over.**
+`ap-radio` implements `ControlValueAccessor` and was written for `ngModel` / `formControlName`, but
+it binds to Signal Forms' `[formField]` unchanged; `conditional-page.spec.ts` asserts it writes back
+into the model signal. And for components we write fresh, `FormValueControl<T>` replaces the CVA
+entirely: a required `value = model<T>()`, optional `errors` / `touched` / `disabled` / `invalid` /
+`pending` / `required` / `name` inputs that `[formField]` fills in *because they are declared*, and a
+`touch` output. No provider, no `writeValue`, and the value can be a `Channel[]` rather than one
+boolean per checkbox. `shared/channel-field.ts` is the same picker as `shared/channel-picker.ts`
+written that way — the diff between the two files is the whole argument — and
+`custom-control-page.spec.ts` pins the four things that matter: the value round-trips, `touch` marks
+the field touched, the error reaches the component's `errors` input on first render (so gating it on
+`touched()` is the component's job), and a `disabled()` rule reaches every checkbox inside.
+
+So the migration has two routes per component, and nothing forces the choice up front: leave a
+working CVA alone, or rewrite against the contract and delete the adapter.
 
 **2. `<ap-button type="submit">` loses its `type` on the first render.** `BaseButtonDirective` reads
 the host `type` in `ngAfterViewInit`, **removes it from the host**, stores it on a plain property and
@@ -106,12 +117,21 @@ The second trigger, also live on `/signal/submit`, sidesteps all of it: `submit(
 TypeScript — the same function the directive calls, reusing the `submission` declared on the form,
 with no `[formRoot]` needed. That's the shape a view-model wants.
 
+**3. `(change)` on `<ap-checkbox>` fires twice for one click.** Once from the component's own `change`
+output, which emits the new boolean, and once from the native `change` event bubbling out of the
+hidden `<input>` the component clicks internally — a listener on a wrapping element receives that
+second one too. Any handler that *toggles* therefore cancels itself out, which is exactly what
+happened here: channel selection did nothing on every page until `ChannelPicker` and `ChannelField`
+started ignoring payloads that aren't booleans. `probe.spec.ts` pins both the duplicate delivery and
+the single emission after the filter. Worth a ticket: the output should not share a name with a
+bubbling DOM event, or the inner input's `change` should be stopped.
+
 `apInput` is a directive on a native `<input>` rather than a wrapper component, so the same markup
 composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapter layer.
 
 ## Tests
 
-`npm test` — 105 tests, in these kinds:
+`npm test` — 115 tests, in these kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.
@@ -122,10 +142,13 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
   run of lines from its source file. `?raw` source imports would remove the copy entirely, but
   `@angular/build`'s esbuild ignores the suffix, so the copy is guarded instead.
 - **Design system contracts** (`probe.spec.ts`, `conditional-page.spec.ts`,
-  `i18n-page.spec.ts`): `ap-checkbox` emits `(change)`, `ap-button` is `type="button"` and loses a
-  forwarded `type="submit"` until its view is checked again, `ap-radio` writes back through
-  `[formField]`, and error messages re-translate on language switch. Each pins down something that
-  would otherwise fail silently on stage.
+  `i18n-page.spec.ts`): `ap-checkbox` delivers one click to a `(change)` listener twice, `ap-button`
+  is `type="button"` and loses a forwarded `type="submit"` until its view is checked again, `ap-radio`
+  writes back through `[formField]`, and error messages re-translate on language switch. Each pins
+  down something that would otherwise fail silently on stage — the first two already did.
+- **Custom controls** (`custom-control-page.spec.ts`): a component implementing `FormValueControl`
+  round-trips a `Channel[]`, marks itself touched through `touch`, renders its own error from the
+  `errors` input, and honours a `disabled()` rule declared on the field.
 - **Initialising from an input** (`reactive-page.spec.ts`, the last block of `probe.spec.ts`): the
   reactive form needs an effect, a `patchValue`, a `FormArray` rebuild and a replay of every rule on
   every arrival; the Signal Forms model is a `linkedSignal`, so value and rules re-derive — and
@@ -152,7 +175,8 @@ Signal Forms is **experimental**: the API can change between minor versions. Eve
 written against the docs for Angular 22.1 and verified by the test suite, but check before copying
 into the platform.
 
-`ap-radio` is the only composite `ControlValueAccessor` component exercised here. It works with
+`ap-radio` is the only composite `ControlValueAccessor` component exercised here (`channel-field.ts`
+is the contract-based alternative, not a CVA). It works with
 `[formField]`, which is strong evidence for the rest — but `ap-password-input`, `ap-slide-toggle`,
 `ap-legacy-select` and `ap-phone-number-input` are still untested. `ap-legacy-select` is the one
 to check next: its `RadioControlRegistry`-style internals lean on `NgControl`, which Signal Forms

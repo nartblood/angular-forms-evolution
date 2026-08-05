@@ -72,6 +72,12 @@ import {
   I18N_VIEW_WIRING,
 } from './18-signal-i18n/i18n-snippets';
 import { ZOD_SCHEMA, ZOD_WIRING } from './19-signal-zod/zod-snippets';
+import {
+  SIGNAL_CONTROL_COMPONENT,
+  SIGNAL_CONTROL_MESSAGE,
+  SIGNAL_CONTROL_RULES,
+  SIGNAL_CONTROL_TEMPLATE,
+} from './20-signal-custom-control/custom-control-snippets';
 
 /**
  * Every snippet rendered on screen is a *copy* of the code it claims to show, so
@@ -142,6 +148,11 @@ const CASES: ReadonlyArray<[label: string, snippet: string, source: string]> = [
   ['S9 fallback', I18N_FALLBACK, '18-signal-i18n/i18n-page.ts'],
   // Guarded against the spec that measures it, so the escape hatch can't rot.
   ['S9 live-switch escape hatch', I18N_LIVE_SWITCH, 'shared/i18n.spec.ts'],
+
+  ['S10 control', SIGNAL_CONTROL_COMPONENT, 'shared/channel-field.ts'],
+  ['S10 own message', SIGNAL_CONTROL_MESSAGE, 'shared/channel-field.ts'],
+  ['S10 binding', SIGNAL_CONTROL_TEMPLATE, '20-signal-custom-control/custom-control-page.ts'],
+  ['S10 rules', SIGNAL_CONTROL_RULES, '20-signal-custom-control/custom-control-page.ts'],
 
   ['Bonus zod schema', ZOD_SCHEMA, '19-signal-zod/zod-page.ts'],
   ['Bonus zod wiring', ZOD_WIRING, '19-signal-zod/zod-page.ts'],

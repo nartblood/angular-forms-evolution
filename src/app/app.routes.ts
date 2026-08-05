@@ -78,6 +78,12 @@ export const routes: Routes = [
     title: 'S9 · Translations',
     loadComponent: () => import('./18-signal-i18n/i18n-page').then((m) => m.I18nPage),
   },
+  {
+    path: 'signal/custom-control',
+    title: 'S10 · Custom control',
+    loadComponent: () =>
+      import('./20-signal-custom-control/custom-control-page').then((m) => m.CustomControlPage),
+  },
 
   {
     path: 'signal/zod',

@@ -2,14 +2,16 @@ import { Component, Injector, input, linkedSignal, signal } from '@angular/core'
 import { TestBed } from '@angular/core/testing';
 import { FormField, form, minLength, required } from '@angular/forms/signals';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
+import { CheckboxComponent } from '@agorapulse/ui-components/checkbox';
 
 import { ChannelPicker } from './shared/channel-picker';
 import { Channel } from './shared/channel';
 
 @Component({
-  imports: [ChannelPicker, ButtonComponent],
+  imports: [ChannelPicker, ButtonComponent, CheckboxComponent],
   template: `
-    <app-channel-picker [selected]="sel()" (toggled)="last.set($event)" />
+    <app-channel-picker [selected]="sel()" (toggled)="onToggled($event)" />
+    <ap-checkbox name="probe" (change)="record($event)">Probe</ap-checkbox>
     <form (submit)="onSubmit($event)">
       <ap-button>Go</ap-button>
       <ap-button type="submit" [loading]="loading()">Submit</ap-button>
@@ -22,6 +24,17 @@ class Host {
   last = signal<Channel | null>(null);
   submitted = signal(false);
   loading = signal(false);
+  changes = signal<string[]>([]);
+  toggles = signal<Channel[]>([]);
+
+  onToggled(channel: Channel): void {
+    this.last.set(channel);
+    this.toggles.update((all) => [...all, channel]);
+  }
+
+  record(event: boolean | Event): void {
+    this.changes.update((all) => [...all, typeof event === 'boolean' ? 'boolean' : 'DOM Event']);
+  }
 
   onSubmit(event: Event): void {
     event.preventDefault();
@@ -39,12 +52,33 @@ describe('design system probe', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
 
-    const boxes = el.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    const boxes = el.querySelectorAll<HTMLInputElement>('app-channel-picker input[type="checkbox"]');
     expect(boxes.length).toBe(4);
 
     boxes[0].click();
     await fixture.whenStable();
-    expect(fixture.componentInstance.last()).toBe('x');
+
+    // Once, not twice: the picker filters the duplicate delivery below, so a
+    // parent that toggles on this output actually changes the selection.
+    expect(fixture.componentInstance.toggles()).toEqual(['x']);
+  });
+
+  it('delivers one ap-checkbox click to a (change) listener twice', async () => {
+    const fixture = TestBed.createComponent(Host);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    // ap-checkbox puts its `name` on the inner input's id, so this is the one
+    // checkbox in the host that isn't inside the picker.
+    el.querySelector<HTMLInputElement>('input#probe')!.click();
+    await fixture.whenStable();
+
+    // Twice, with different payloads: ap-checkbox's `change` output emits the new
+    // boolean, and the native `change` event bubbles out of the hidden <input>
+    // that the component clicks internally — the listener on <ap-checkbox> sees
+    // both. A handler that *toggles* therefore cancels itself out, which is why
+    // ChannelPicker and ChannelField ignore anything that isn't a boolean.
+    expect(fixture.componentInstance.changes()).toEqual(['boolean', 'DOM Event']);
   });
 
   it('records how ap-button behaves inside a form', async () => {

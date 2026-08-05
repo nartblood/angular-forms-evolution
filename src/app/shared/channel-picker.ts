@@ -20,7 +20,7 @@ import { CHANNELS, CHANNEL_LABEL, Channel } from './channel';
       <ap-checkbox
         [name]="'channel-' + channel"
         [checked]="selected().includes(channel)"
-        (change)="toggled.emit(channel)"
+        (change)="onChange(channel, $event)"
       >
         {{ label[channel] }}
       </ap-checkbox>
@@ -40,4 +40,14 @@ export class ChannelPicker {
 
   protected readonly channels = CHANNELS;
   protected readonly label = CHANNEL_LABEL;
+
+  protected onChange(channel: Channel, checked: boolean | Event): void {
+    // A single click reaches this listener twice: once from ap-checkbox's own
+    // `change` output, which emits a boolean, and once from the native `change`
+    // event that bubbles out of its hidden <input>. Emitting on both toggles the
+    // channel twice, which is a no-op — see probe.spec.ts.
+    if (typeof checked !== 'boolean') return;
+
+    this.toggled.emit(channel);
+  }
 }
