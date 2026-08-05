@@ -1,6 +1,8 @@
 import { Component, Injector, input, linkedSignal, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormField, form, minLength, required } from '@angular/forms/signals';
+import { FormControl, ValidationErrors } from '@angular/forms';
+import { Subject, first, of } from 'rxjs';
 import { ButtonComponent } from '@agorapulse/ui-components/button';
 import { CheckboxComponent } from '@agorapulse/ui-components/checkbox';
 
@@ -189,6 +191,49 @@ describe('field tree probe', () => {
     // also what the demo pages' Schedule button does: one call, every error shown.
     composer().markAsTouched();
     expect(field().touched()).toBe(true);
+  });
+});
+
+/**
+ * Why R9's hand-rolled async validator has no `first()` in it, and when it would
+ * need one. Two different contracts depending on how the validator is registered,
+ * neither of them visible at the call site — which is the pain, not the fix.
+ */
+describe('reactive async validator completion probe', () => {
+  it('hangs on a non-completing source only when registered in an array', () => {
+    const source = new Subject<ValidationErrors | null>();
+    const validator = () => source.asObservable();
+
+    // `asyncValidators: [fn]` → composeAsync → forkJoin, which emits only once
+    // every source *completes*. `asyncValidators: fn` → Angular subscribes to it
+    // directly, so the first emission is applied and completion never matters.
+    const inArray = new FormControl('a', { asyncValidators: [validator] });
+    const alone = new FormControl('a', { asyncValidators: validator });
+    const guarded = new FormControl('a', {
+      asyncValidators: [() => source.asObservable().pipe(first())],
+    });
+
+    source.next({ duplicate: true });
+
+    expect({
+      inArray: [inArray.status, inArray.errors],
+      alone: [alone.status, alone.errors],
+      guarded: [guarded.status, guarded.errors],
+    }).toEqual({
+      inArray: ['PENDING', null], // emitted, never completed — hung, silently
+      alone: ['INVALID', { duplicate: true }],
+      guarded: ['INVALID', { duplicate: true }],
+    });
+  });
+
+  it('needs no guard when the chain completes by itself', () => {
+    const control = new FormControl('a', {
+      asyncValidators: [() => of({ duplicate: true } as ValidationErrors)],
+    });
+
+    // Which is R9's case: timer(400) emits once, http.get completes, catchError
+    // returns of(...). Hence no `first()` there.
+    expect([control.status, control.errors]).toEqual(['INVALID', { duplicate: true }]);
   });
 });
 

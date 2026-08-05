@@ -23,7 +23,6 @@ export const REACTIVE_ASYNC_VALIDATOR = `private duplicateContentValidator(): As
         res.duplicate ? { duplicateContent: { publishedAt: res.publishedAt } } : null,
       ),
       catchError(() => of({ duplicateCheckFailed: true })),
-      first(),
     );
   };
 }`;

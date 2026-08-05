@@ -16,7 +16,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Observable, catchError, first, map, of, switchMap, tap, timer } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap, timer } from 'rxjs';
 
 import { InputDirective } from '@agorapulse/ui-components/input';
 import { TextareaDirective } from '@agorapulse/ui-components/textarea';
@@ -223,8 +223,16 @@ export class ReactivePage {
 
   // -------------------------------------------------------------------------
   // PAIN 6: debounce, caching, short-circuiting, error mapping and completion
-  // semantics are all ours. Drop that `first()` and the form stays PENDING
-  // forever with nothing in the console.
+  // semantics are all ours.
+  //
+  // Completion is the one that bites. Async validators registered in an array go
+  // through `forkJoin`, which emits only once every source *completes* — so a
+  // source that emits and stays open leaves the control PENDING forever, with
+  // nothing in the console. This chain completes on its own (`timer` emits once,
+  // `http.get` completes, `catchError` returns `of`), so there is deliberately no
+  // `first()` here — but put one back the moment the source is a Subject, a
+  // signal-derived observable, or anything else that doesn't end. Measured both
+  // ways in probe.spec.ts.
   // -------------------------------------------------------------------------
   private duplicateContentValidator(): AsyncValidatorFn {
     const cache = new Map<string, boolean>();
@@ -246,7 +254,6 @@ export class ReactivePage {
           res.duplicate ? { duplicateContent: { publishedAt: res.publishedAt } } : null,
         ),
         catchError(() => of({ duplicateCheckFailed: true })),
-        first(),
       );
     };
   }

@@ -70,4 +70,25 @@ describe('R9 · initialising from an input signal', () => {
     expect(form.get('firstComment')!.disabled).toBe(true);
     expect(form.getRawValue().channels).toEqual(['x']);
   });
+
+  it('resolves the duplicate check with no first() in the chain', async () => {
+    const { fixture, form } = await setup();
+    const content = form.get('content')!;
+
+    content.setValue('Behind the scenes of our latest release');
+    expect(content.status).toBe('PENDING');
+
+    // The 400ms debounce is a bare rxjs `timer`, which the zoneless test scheduler
+    // doesn't track — so `whenStable()` alone returns while it is still pending.
+    // That's the hand-rolled debounce showing up in the tests too.
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await fixture.whenStable();
+
+    // The validator's own chain completes (`timer` emits once, `http.get`
+    // completes, `catchError` returns `of`), which is what forkJoin waits for —
+    // so the control leaves PENDING without a `first()` guard. See probe.spec.ts
+    // for the case where that guard is the difference.
+    expect(content.status).toBe('INVALID');
+    expect(content.errors).toEqual({ duplicateContent: { publishedAt: '2026-07-14' } });
+  });
 });

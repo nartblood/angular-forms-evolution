@@ -32,7 +32,7 @@ One form, eight fields, and rules that are genuinely interesting rather than con
 | `/signal/cross-field` | | `valueOf()` — the error lands on the field that renders it |
 | `/signal/arrays` | | `applyEach`, and add/remove as `model.update()` |
 | `/signal/visibility` | | `hidden()` / `disabled()`, without losing data from the payload |
-| `/signal/async` | | `validateHttp` — no debounce, cache or `first()` to hand-roll |
+| `/signal/async` | | `validateHttp` — no debounce, cache, cancellation or completion semantics to hand-roll |
 | `/signal/submit` | | `[formRoot]`, `submitting()`, `errorSummary()`, field-targeted server errors |
 | `/signal/schemas` | | every rule extracted to `composer-schema.ts`, reused and unit-tested |
 | `/signal/i18n` | | translated copy declared at the rule (`message: () => translate.instant(…)`), and what the view is left with |
@@ -134,7 +134,7 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
 
 ## Tests
 
-`npm test` — 115 tests, in these kinds:
+`npm test` — 118 tests, in these kinds:
 
 - **Smoke** (`pages.spec.ts`): every page mounts and renders. The build only proves the code
   type-checks; this proves the Signal Forms calls behave at runtime.
@@ -158,6 +158,11 @@ composes with `[(ngModel)]`, `formControlName`, and `[formField]` with no adapte
   touched state still needs an explicit `reset()`.
 - **Async failure** (`async-page.spec.ts`): a duplicate the server reports, and a check the server
   can't answer — the 503 lands in `onError`, so the field is invalid rather than quietly valid.
+- **Async completion** (`probe.spec.ts`, `reactive-page.spec.ts`): `asyncValidators: [fn]` is composed
+  with `forkJoin`, so a source that emits without completing leaves the control `PENDING` forever and
+  logs nothing; `asyncValidators: fn` (no array) is subscribed directly and takes the first emission.
+  R9's chain completes on its own, which is why it carries no `first()` — asserted, so nobody adds one
+  back as a ritual.
 - **Aggregation** (`arrays-page.spec.ts`): on a field with children, `invalid()` counts every
   descendant while `errors()` is own-only. Gating a parent's message on `invalid()` renders a block
   for an error that lives on a child, and `errors()[0].message` throws mid-render — which kills the

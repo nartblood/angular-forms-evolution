@@ -165,7 +165,10 @@
   <h3>The ten mechanisms, in code</h3>
 
   <app-code label="1 · Cross-field rule — on the root group, not the field" [code]="crossFieldSnippet" />
-  <app-code label="2 · Async validation, hand-rolled (drop first() and the form hangs)" [code]="asyncSnippet" />
+  <app-code
+    label="2 · Async validation, hand-rolled — debounce, cache, error mapping, and a chain that must complete"
+    [code]="asyncSnippet"
+  />
   <app-code label="3 · Loading — suppress events, rebuild the array, replay the rules" [code]="loadingSnippet" />
   <app-code
     label="4 · …and it can't be declared: an input signal needs an effect to reach the tree"
